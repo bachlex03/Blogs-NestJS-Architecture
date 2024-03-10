@@ -1,14 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ForbiddenException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import {
-  Repository,
-  FindOneOptions,
-  UpdateOptions,
-  FindOptionsWhere,
-} from 'typeorm';
+import { Repository, FindOptionsWhere } from 'typeorm';
 
 @Injectable()
 export class UsersService {
@@ -24,20 +19,30 @@ export class UsersService {
     return this.userRepository.find();
   }
 
-  findOneById(id: number): Promise<User | null> {
-    return this.userRepository.findOneBy({ id });
+  async findOneById(id: number): Promise<User | null> {
+    return await this.userRepository.findOneBy({ id });
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return this.userRepository.update(id, updateUserDto);
+  async updateById(id: number, updateUserDto: UpdateUserDto) {
+    const user = await this.findOneById(id);
+
+    if (!user) throw new ForbiddenException('User not found !');
+
+    return await this.userRepository.update(id, updateUserDto);
   }
 
-  updateByEmail(email: string, updateUserDto: UpdateUserDto) {
+  async updatePasswordByEmail(email: string, updateUserDto: UpdateUserDto) {
     const options: FindOptionsWhere<User> = {
       email,
     };
 
-    return this.userRepository.update(options, updateUserDto);
+    const user = await this.userRepository.findOneBy({ email });
+
+    if (!user) throw new ForbiddenException('Email not found !');
+
+    return this.userRepository.update(options, {
+      password: updateUserDto.password,
+    });
   }
 
   deleteById(id: number) {

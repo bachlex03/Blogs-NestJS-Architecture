@@ -32,15 +32,15 @@ export class UsersController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+    return this.usersService.updateById(+id, updateUserDto);
   }
 
   @Patch('email/:email')
-  updateByEmail(
+  updatePasswordByEmail(
     @Param('email') email: string,
     @Body() updateUserDto: UpdateUserDto,
   ) {
-    return this.usersService.updateByEmail(email, updateUserDto);
+    return this.usersService.updatePasswordByEmail(email, updateUserDto);
   }
 
   @Delete(':id')
