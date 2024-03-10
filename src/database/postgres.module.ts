@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { dbConfig, db } from './postgres.service';
+import { dbConfig } from './postgres.service';
 
 @Module({
   imports: [TypeOrmModule.forRootAsync(dbConfig)],

@@ -1,19 +1,21 @@
 import { TypeOrmModuleAsyncOptions } from '@nestjs/typeorm';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from 'src/users/entities/user.entity';
+import { User } from 'src/modules/users/entities/user.entity';
+
+import config from '../configs/env.config';
+
+const { HOST, PORT, USERNAME, DATABASE, PASSWORD } = config.postgres;
+
+console.log({ fb: config });
 
 export const dbConfig: TypeOrmModuleAsyncOptions = {
   useFactory: () => ({
     type: 'postgres',
-    host: 'localhost',
-    port: 5432,
-    username: 'bale',
-    password: '',
-    database: 'todo',
+    host: HOST,
+    port: PORT,
+    username: USERNAME,
+    password: PASSWORD,
+    database: DATABASE,
     entities: [User],
     synchronize: true,
   }),
 };
-
-export const db: TypeOrmModuleAsyncOptions =
-  TypeOrmModule.forRootAsync(dbConfig);
