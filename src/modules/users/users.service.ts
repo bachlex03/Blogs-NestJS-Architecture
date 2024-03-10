@@ -3,7 +3,12 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import {
+  Repository,
+  FindOneOptions,
+  UpdateOptions,
+  FindOptionsWhere,
+} from 'typeorm';
 
 @Injectable()
 export class UsersService {
@@ -15,19 +20,31 @@ export class UsersService {
     return this.userRepository.save(createUserDto);
   }
 
-  findAll() {
-    return `This action returns all users`;
+  findAll(): Promise<User[]> {
+    return this.userRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  findOneById(id: number): Promise<User | null> {
+    return this.userRepository.findOneBy({ id });
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+    return this.userRepository.update(id, updateUserDto);
+  }
+
+  updateByEmail(email: string, updateUserDto: UpdateUserDto) {
+    const options: FindOptionsWhere<User> = {
+      email,
+    };
+
+    return this.userRepository.update(options, updateUserDto);
+  }
+
+  deleteById(id: number) {
+    return this.userRepository.delete(id);
   }
 
   remove(id: number) {
-    return `This action removes a #${id} user`;
+    return this.userRepository.delete(id);
   }
 }

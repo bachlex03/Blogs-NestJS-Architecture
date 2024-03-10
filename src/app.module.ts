@@ -3,7 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './modules/users/users.module';
 import { BlogsModule } from './modules/blogs/blogs.module';
-import { DatabaseModule } from './database/postgres.module';
+import { DatabaseModule } from './modules/database/postgres.module';
 
 @Module({
   imports: [DatabaseModule, UsersModule, BlogsModule],

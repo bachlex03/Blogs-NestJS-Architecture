@@ -1,7 +1,7 @@
 import { TypeOrmModuleAsyncOptions } from '@nestjs/typeorm';
 import { User } from 'src/modules/users/entities/user.entity';
 
-import config from '../configs/env.config';
+import config from '../../configs/env.config';
 
 const { HOST, PORT, USERNAME, DATABASE, PASSWORD } = config.postgres;
 
