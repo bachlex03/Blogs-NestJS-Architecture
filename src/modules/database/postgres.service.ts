@@ -3,6 +3,11 @@ import { User } from '../users/entities/user.entity';
 
 import config from '../../configs/env.config';
 import { Auth } from '../auth/entities/auth.entity';
+import * as dotenv from 'dotenv';
+
+dotenv.config({ path: '.env' });
+
+console.log({ env: process.env.DEV_DB_DATABASE }); // {
 
 const { HOST, PORT, USERNAME, DATABASE, PASSWORD } = config.postgres;
 
@@ -16,7 +21,7 @@ export const dbConfig: TypeOrmModuleAsyncOptions = {
     username: USERNAME,
     password: PASSWORD,
     database: DATABASE,
-    entities: [User],
+    entities: [User, Auth],
     synchronize: true,
   }),
 };

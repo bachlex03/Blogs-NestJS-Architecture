@@ -12,9 +12,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     TypeOrmModule.forFeature([Auth]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        secret: '123',
-      }),
+      useFactory: async (configService: ConfigService) => ({}),
       inject: [ConfigService],
     }),
     UsersModule,

@@ -7,7 +7,7 @@ import { DatabaseModule } from './modules/database/postgres.module';
 import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
-  imports: [DatabaseModule, UsersModule, BlogsModule, AuthModule],
+  imports: [UsersModule, BlogsModule, AuthModule, DatabaseModule],
   controllers: [AppController],
   providers: [AppService],
 })

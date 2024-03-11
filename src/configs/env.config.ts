@@ -1,3 +1,7 @@
+import * as dotenv from 'dotenv';
+
+dotenv.config({ path: '.env' });
+
 const dev = {
   app: {
     port: process.env.DEV_APP_PORT || 3055,
@@ -10,7 +14,6 @@ const dev = {
     DATABASE: process.env.DEV_DB_DATABASE || 'todo',
   },
 };
-console.log({ time: process.env.DEV_DB_PORT });
 
 const pro = {
   app: {
