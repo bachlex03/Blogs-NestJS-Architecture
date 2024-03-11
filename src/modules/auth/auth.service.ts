@@ -1,10 +1,15 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { RegisterUserDto } from '../users/dto/register-user.dto';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
 import { KeyTokenService } from '../key-token/key-token.service';
 import { SaveKeyTokenDto } from '../key-token/dto/save-key-token.dto';
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -47,14 +52,53 @@ export class AuthService {
       secret,
     );
 
-    const saveKeyTokenDto = new SaveKeyTokenDto();
+    const keyStore = await this.keyTokenService.create(savedUser.id, {
+      refreshTokenUsing: refreshToken,
+    });
 
-    saveKeyTokenDto.user_id = savedUser.id;
-    saveKeyTokenDto.refreshTokenUsing = refreshToken;
+    return {
+      user: payload,
+      tokens: {
+        accessToken,
+        refreshToken,
+      },
+    };
+  }
 
-    const keyStore = await this.keyTokenService.create(saveKeyTokenDto);
+  async login(loginDto: LoginDto) {
+    // 1. check exist email?
+    const user = await this.usersService.findOneByEmail(loginDto.email);
 
-    console.log({ keyStore });
+    console.log({ user });
+
+    if (!user) {
+      throw new BadRequestException('Invalid user!');
+    }
+
+    // 2. check password
+    const isMatch = bcrypt.compare(loginDto.password, user.password);
+
+    if (!isMatch) {
+      throw new BadRequestException('Invalid password');
+    }
+
+    // 3. generate access token and refresh token
+    const payload = {
+      userId: user.id,
+      email: user.email,
+      fullName: user.fullName,
+    };
+
+    const secret = process.env.SECRET_KEY;
+
+    const { accessToken, refreshToken } = await this.createTokenPair(
+      payload,
+      secret,
+    );
+
+    const keyToken = await this.keyTokenService.create(user.id, {
+      refreshTokenUsing: refreshToken,
+    });
 
     return {
       user: payload,
