@@ -10,6 +10,7 @@ const dev = {
     DATABASE: process.env.DEV_DB_DATABASE || 'todo',
   },
 };
+console.log({ time: process.env.DEV_DB_PORT });
 
 const pro = {
   app: {

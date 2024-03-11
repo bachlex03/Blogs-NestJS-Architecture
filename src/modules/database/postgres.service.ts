@@ -1,11 +1,12 @@
 import { TypeOrmModuleAsyncOptions } from '@nestjs/typeorm';
-import { User } from 'src/modules/users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 
 import config from '../../configs/env.config';
+import { Auth } from '../auth/entities/auth.entity';
 
 const { HOST, PORT, USERNAME, DATABASE, PASSWORD } = config.postgres;
 
-console.log({ fb: config });
+console.log({ DB: config });
 
 export const dbConfig: TypeOrmModuleAsyncOptions = {
   useFactory: () => ({
