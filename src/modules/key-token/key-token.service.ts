@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { KeyToken } from './entities/key-token.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,13 +13,23 @@ export class KeyTokenService {
     private readonly usersService: UsersService,
   ) {}
 
-  async create(saveKeyTokenDto: SaveKeyTokenDto) {
-    const user = await this.usersService.findOneById(saveKeyTokenDto.user_id);
+  async create(userId: number, saveKeyTokenDto: SaveKeyTokenDto) {
+    const user = await this.usersService.findOneById(userId);
 
-    const keyToken = new KeyToken();
-    keyToken.user = user;
-    keyToken.refreshTokenUsing = saveKeyTokenDto.refreshTokenUsing;
+    if (!user) throw new BadRequestException('User not found !');
 
-    return this.keyTokenRepository.save(keyToken);
+    let keyToken = await this.keyTokenRepository.findOne({ where: { user } });
+
+    if (keyToken) {
+      keyToken.refreshTokenUsing = saveKeyTokenDto.refreshTokenUsing;
+      keyToken.refreshTokenUsed = saveKeyTokenDto.refreshTokenUsed;
+    } else {
+      keyToken = this.keyTokenRepository.create({
+        user: user,
+        ...saveKeyTokenDto,
+      });
+    }
+
+    return await this.keyTokenRepository.save(keyToken);
   }
 }
