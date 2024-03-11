@@ -2,7 +2,7 @@ import { TypeOrmModuleAsyncOptions } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
 
 import config from '../../configs/env.config';
-import { Auth } from '../auth/entities/auth.entity';
+import { KeyToken } from '../key-token/entities/key-token.entity';
 import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
@@ -21,7 +21,7 @@ export const dbConfig: TypeOrmModuleAsyncOptions = {
     username: USERNAME,
     password: PASSWORD,
     database: DATABASE,
-    entities: [User, Auth],
+    entities: [User, KeyToken],
     synchronize: true,
   }),
 };

@@ -1,19 +1,17 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { Repository } from 'typeorm';
-import { Auth } from './entities/auth.entity';
-import { User } from '../users/entities/user.entity';
 import { RegisterUserDto } from '../users/dto/register-user.dto';
-import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
+import { KeyTokenService } from '../key-token/key-token.service';
+import { SaveKeyTokenDto } from '../key-token/dto/save-key-token.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(Auth) private readonly authRepository: Repository<Auth>,
     private jwtService: JwtService,
     private usersService: UsersService,
+    private keyTokenService: KeyTokenService,
   ) {}
 
   async signUp(registerUserDto: RegisterUserDto) {
@@ -43,12 +41,20 @@ export class AuthService {
 
     const secret = process.env.SECRET_KEY;
 
+    // generate accessToken and refreshToken
     const { accessToken, refreshToken } = await this.createTokenPair(
       payload,
       secret,
     );
 
-    console.log({ accessToken });
+    const saveKeyTokenDto = new SaveKeyTokenDto();
+
+    saveKeyTokenDto.user_id = savedUser.id;
+    saveKeyTokenDto.refreshTokenUsing = refreshToken;
+
+    const keyStore = await this.keyTokenService.create(saveKeyTokenDto);
+
+    console.log({ keyStore });
 
     return {
       user: payload,
@@ -60,12 +66,12 @@ export class AuthService {
   }
 
   async createTokenPair(payload, secret) {
-    const accessToken = this.jwtService.signAsync(payload, {
+    const accessToken = await this.jwtService.signAsync(payload, {
       expiresIn: process.env.EXPIRE_AT,
       secret,
     });
 
-    const refreshToken = this.jwtService.signAsync(payload, {
+    const refreshToken = await this.jwtService.signAsync(payload, {
       expiresIn: process.env.EXPIRE_RT,
       secret,
     });
