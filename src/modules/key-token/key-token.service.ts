@@ -1,9 +1,10 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { KeyToken } from './entities/key-token.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SaveKeyTokenDto } from './dto/save-key-token.dto';
 import { UsersService } from '../users/users.service';
+import { UUID } from 'crypto';
 
 @Injectable()
 export class KeyTokenService {
@@ -31,5 +32,20 @@ export class KeyTokenService {
     }
 
     return await this.keyTokenRepository.save(keyToken);
+  }
+
+  async deleteByUserId(userId: number) {
+    const user = await this.usersService.findOneById(userId);
+
+    if (user) {
+      return await this.keyTokenRepository
+        .createQueryBuilder()
+        .delete()
+        .from(KeyToken)
+        .where('user = :userId', { userId })
+        .execute();
+    }
+
+    return null;
   }
 }

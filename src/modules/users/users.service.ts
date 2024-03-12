@@ -8,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { RegisterUserDto } from './dto/register-user.dto';
+import { UUID } from 'crypto';
 
 @Injectable()
 export class UsersService {
@@ -59,7 +60,7 @@ export class UsersService {
   // }
 
   deleteById(id: number) {
-    return this.userRepository.delete(id);
+    return this.userRepository.delete({ id });
   }
 
   remove(id: number) {
