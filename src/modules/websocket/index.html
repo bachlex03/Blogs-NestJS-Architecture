@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test SocketIO</title>
+  </head>
+  <body>
+    <h1>Test SocketIO</h1>
+  </body>
+
+  <button id="btn-btn" style="font-size: 50px">Send message</button>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.4/socket.io.min.js"></script>
+
+  <script>
+    var socket = io.connect('http://localhost:3000/');
+
+    const btn = document.getElementById('btn-btn');
+
+    btn.addEventListener('click', () => {
+      socket.emit('sendMessage', { message: 'Message from client' });
+    });
+
+    socket.on('receiveMessage', (message) => {
+      console.log({ message });
+    });
+  </script>
+</html>
