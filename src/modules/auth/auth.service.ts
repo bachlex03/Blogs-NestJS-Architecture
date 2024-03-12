@@ -8,8 +8,9 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
 import { KeyTokenService } from '../key-token/key-token.service';
-import { SaveKeyTokenDto } from '../key-token/dto/save-key-token.dto';
 import { LoginDto } from './dto/login.dto';
+import { Headers } from 'src/constants';
+import { UUID } from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -106,6 +107,20 @@ export class AuthService {
         accessToken,
         refreshToken,
       },
+    };
+  }
+
+  async logout(headers: any) {
+    const userId = headers[Headers.CLIENT_ID];
+
+    const deletedKeyToken = await this.keyTokenService.deleteByUserId(userId);
+
+    console.log({
+      deletedKeyToken,
+    });
+
+    return {
+      deletedKeyToken,
     };
   }
 
