@@ -11,6 +11,7 @@ import { KeyTokenService } from '../key-token/key-token.service';
 import { LoginDto } from './dto/login.dto';
 import { Headers } from 'src/constants';
 import { UUID } from 'crypto';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +19,7 @@ export class AuthService {
     private jwtService: JwtService,
     private usersService: UsersService,
     private keyTokenService: KeyTokenService,
+    private mailerService: MailService,
   ) {}
 
   async signUp(registerUserDto: RegisterUserDto) {
@@ -56,6 +58,11 @@ export class AuthService {
     const keyStore = await this.keyTokenService.create(savedUser.id, {
       refreshTokenUsing: refreshToken,
     });
+
+    // Send email
+    const token = Math.floor(1000 + Math.random() * 9000).toString();
+
+    await this.mailerService.sendUserConfirmation(savedUser, token);
 
     return {
       user: payload,
