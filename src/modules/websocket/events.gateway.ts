@@ -5,6 +5,8 @@ import {
   WebSocketServer,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  ConnectedSocket,
+  MessageBody,
 } from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
 
@@ -18,23 +20,21 @@ export class EventsGateway
 {
   @WebSocketServer() server: Server;
 
-  afterInit(server: Server) {
-    console.log(server);
-    //Do stuffs
-  }
+  afterInit(server: Server) {}
 
   handleDisconnect(client: Socket) {
     console.log(`Disconnected: ${client.id}`);
-    //Do stuffs
   }
 
   handleConnection(client: Socket, ...args: any[]) {
     console.log(`Connected: ${client.id}`);
-    //Do stuffs
   }
 
   @SubscribeMessage('sendMessage')
-  async handleSendMessage(client: Socket, payload: any): Promise<void> {
+  async handleSendMessage(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: any,
+  ): Promise<void> {
     console.log(payload);
 
     this.server.emit('receiveMessage', {

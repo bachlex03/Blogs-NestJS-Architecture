@@ -3,7 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './modules/users/users.module';
 import { BlogsModule } from './modules/blogs/blogs.module';
-import { DatabaseModule } from './modules/database/postgres.module';
+import { DatabaseModule } from './db/postgres.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { KeyTokenModule } from './modules/key-token/key-token.module';
 import { MailModule } from './modules/mail/mail.module';
