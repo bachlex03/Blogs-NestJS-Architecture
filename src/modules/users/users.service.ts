@@ -8,7 +8,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { RegisterUserDto } from './dto/register-user.dto';
-import { UUID } from 'crypto';
 
 @Injectable()
 export class UsersService {
@@ -30,7 +29,7 @@ export class UsersService {
   }
 
   async findOneById(id: number): Promise<User | null> {
-    return await this.userRepository.findOneBy({ id });
+    return await this.userRepository.findOneBy(null);
   }
 
   async findOneByEmail(email: string): Promise<User | null> {
@@ -60,7 +59,7 @@ export class UsersService {
   // }
 
   deleteById(id: number) {
-    return this.userRepository.delete({ id });
+    return this.userRepository.delete(null);
   }
 
   remove(id: number) {

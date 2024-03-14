@@ -20,7 +20,6 @@ export default class UserSeeder implements Seeder {
     await repository.insert({
       email: 'bach@gmail.com',
       password: '123',
-      fullName: 'Le Xuan Bach',
     });
   }
 }

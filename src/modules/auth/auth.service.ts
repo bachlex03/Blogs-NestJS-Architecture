@@ -44,7 +44,6 @@ export class AuthService {
     const payload = {
       user_id: savedUser.id,
       email: savedUser.email,
-      fullName: savedUser.fullName,
     };
 
     const secret = process.env.SECRET_KEY;
@@ -94,7 +93,6 @@ export class AuthService {
     const payload = {
       userId: user.id,
       email: user.email,
-      fullName: user.fullName,
     };
 
     const secret = process.env.SECRET_KEY;

@@ -22,7 +22,7 @@ export const dbConfig: TypeOrmModuleAsyncOptions & SeederOptions = {
     username: USERNAME,
     password: PASSWORD,
     database: DATABASE,
-    entities: [`${__dirname + '/../**/*.entity.{js,ts}'}`],
+    entities: [__dirname + '/../**/*.entity.{js,ts}'],
     synchronize: true,
   }),
   seeds: [MainSeeder],

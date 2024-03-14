@@ -14,24 +14,21 @@ export class KeyTokenService {
     private readonly usersService: UsersService,
   ) {}
 
-  async create(userId: number, saveKeyTokenDto: SaveKeyTokenDto) {
-    const user = await this.usersService.findOneById(userId);
-
-    if (!user) throw new BadRequestException('User not found !');
-
-    let keyToken = await this.keyTokenRepository.findOne({ where: { user } });
-
-    if (keyToken) {
-      keyToken.refreshTokenUsing = saveKeyTokenDto.refreshTokenUsing;
-      keyToken.refreshTokenUsed = saveKeyTokenDto.refreshTokenUsed;
-    } else {
-      keyToken = this.keyTokenRepository.create({
-        user: user,
-        ...saveKeyTokenDto,
-      });
-    }
-
-    return await this.keyTokenRepository.save(keyToken);
+  async create(userId: string, saveKeyTokenDto: SaveKeyTokenDto) {
+    // const user = await this.usersService.findOneById(userId);
+    // if (!user) throw new BadRequestException('User not found !');
+    // let keyToken = await this.keyTokenRepository.findOne({ where: { user } });
+    // if (keyToken) {
+    //   keyToken.refreshTokenUsing = saveKeyTokenDto.refreshTokenUsing;
+    //   keyToken.refreshTokenUsed = saveKeyTokenDto.refreshTokenUsed;
+    // } else {
+    //   keyToken = this.keyTokenRepository.create({
+    //     user: user,
+    //     ...saveKeyTokenDto,
+    //   });
+    // }
+    // return await this.keyTokenRepository.save(keyToken);
+    return [];
   }
 
   async deleteByUserId(userId: number) {

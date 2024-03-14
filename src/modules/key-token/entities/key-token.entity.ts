@@ -6,15 +6,14 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { User } from 'src/modules/users/entities/user.entity';
-import { UUID } from 'crypto';
 
-@Entity()
+@Entity({ name: 'keyToken' })
 export class KeyToken {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('identity')
   id: number;
 
-  @OneToOne((type) => User)
-  @JoinColumn()
+  @OneToOne(() => User)
+  @JoinColumn({ name: 'user_id' })
   user: User;
 
   @Column({

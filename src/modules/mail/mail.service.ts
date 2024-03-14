@@ -19,7 +19,7 @@ export class MailService {
       subject: 'Register! Confirm your Email',
       template: './confirmation',
       context: {
-        name: user.fullName,
+        name: 'Name for test',
         url,
       },
     });
