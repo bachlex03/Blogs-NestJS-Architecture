@@ -86,8 +86,8 @@ export class AuthService {
     };
   }
 
-  async logout(headers: any) {
-    const userId = headers[Headers.CLIENT_ID];
+  async logout(user: any) {
+    const { userId } = user;
 
     const deletedKeyToken = await this.tokenService.deleteByUserId(userId);
 

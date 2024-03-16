@@ -30,8 +30,8 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Post('logout')
-  logout(@Headers() header) {
-    // return this.authService.logout(header);
+  logout(@Req() req: Request) {
+    return this.authService.logout(req.user);
   }
 
   @Post('refresh')
