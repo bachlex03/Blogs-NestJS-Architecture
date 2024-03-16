@@ -8,7 +8,7 @@ import {
 import { User } from 'src/modules/users/entities/user.entity';
 
 @Entity({ name: 'keyToken' })
-export class KeyToken {
+export class Token {
   @PrimaryGeneratedColumn('identity')
   id: number;
 

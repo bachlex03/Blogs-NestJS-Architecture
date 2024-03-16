@@ -1,6 +1,6 @@
 import { UUID } from 'crypto';
 
-export class SaveKeyTokenDto {
+export class SaveTokenDto {
   refreshTokenUsed?: string[];
 
   refreshTokenUsing: string;

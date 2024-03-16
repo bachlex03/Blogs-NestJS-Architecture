@@ -41,8 +41,8 @@ export class UsersService {
     return await this.userRepo.find();
   }
 
-  async findOneById(id: number): Promise<User | null> {
-    return await this.userRepo.findOneBy(null);
+  async findOneById(id: string): Promise<User | null> {
+    return await this.userRepo.findOneBy({ id });
   }
 
   async findOneByEmail(email: string): Promise<User | null> {
@@ -50,11 +50,9 @@ export class UsersService {
   }
 
   async updateById(id: number, updateUserDto: UpdateUserDto) {
-    const user = await this.findOneById(id);
-
-    if (!user) throw new ForbiddenException('User not found !');
-
-    return await this.userRepo.update(id, updateUserDto);
+    // const user = await this.findOneById(id);
+    // if (!user) throw new ForbiddenException('User not found !');
+    // return await this.userRepo.update(id, updateUserDto);
   }
 
   // async updatePasswordByEmail(email: string, updateUserDto: UpdateUserDto) {

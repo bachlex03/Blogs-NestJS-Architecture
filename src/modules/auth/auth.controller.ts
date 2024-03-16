@@ -29,13 +29,19 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  logout(@Headers() header) {
+    // return this.authService.logout(header);
+  }
+
+  @Post('refresh')
+  generateAccessToken(@Body('refreshToken') refreshToken: string) {
+    return this.authService.requestAccessToken(refreshToken);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('protected')
   getInfo(@Req() req: Request) {
     return req.user;
-  }
-
-  @Post('logout')
-  logout(@Headers() header) {
-    return this.authService.logout(header);
   }
 }

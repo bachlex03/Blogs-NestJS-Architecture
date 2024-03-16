@@ -1,16 +1,14 @@
 import {
   BadRequestException,
-  ForbiddenException,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { RegisterUserDto } from '../users/dto/register-user.dto';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
-import { KeyTokenService } from '../key-token/key-token.service';
-import { LoginDto } from './dto/login.dto';
+import { TokenService } from '../token/token.service';
 import { Headers } from 'src/constants';
-import { UUID } from 'crypto';
 import { MailService } from '../mail/mail.service';
 import { User } from '../users/entities/user.entity';
 
@@ -19,40 +17,39 @@ export class AuthService {
   constructor(
     private jwtService: JwtService,
     private usersService: UsersService,
-    private keyTokenService: KeyTokenService,
+    private tokenService: TokenService,
     private mailerService: MailService,
   ) {}
 
   async signUp(registerUserDto: RegisterUserDto) {
     // 1. Checking exist email ?
-    const user = this.usersService.findOneByEmail(registerUserDto.email);
+    const user = await this.usersService.findOneByEmail(registerUserDto.email);
 
-    if (!user) {
-      throw new BadRequestException('User not found !');
+    if (user) {
+      throw new BadRequestException('User is registered !');
     }
 
     // 2. hashing password
     registerUserDto.password = await bcrypt.hash(registerUserDto.password, 10);
 
     // 3. save
-    const savedUser = await this.usersService.create(registerUserDto);
+    const newUser = await this.usersService.create(registerUserDto);
 
-    if (!savedUser) {
+    if (!newUser) {
       throw new BadRequestException("Can't register !");
     }
 
     // 4. generate accessToken and refreshToken using JWT
     const payload = {
-      user_id: savedUser.id,
-      email: savedUser.email,
+      user_id: newUser.id,
+      email: newUser.email,
     };
 
-    const secret = process.env.SECRET_KEY;
-
     // generate accessToken and refreshToken
-    const { accessToken, refreshToken } = await this.createTokenPair(payload);
+    const { accessToken, refreshToken, expiredInAccessToken } =
+      await this.createTokenPair(payload);
 
-    const keyStore = await this.keyTokenService.create(savedUser.id, {
+    await this.tokenService.create(newUser.email, {
       refreshTokenUsing: refreshToken,
     });
 
@@ -62,41 +59,37 @@ export class AuthService {
     // await this.mailerService.sendUserConfirmation(savedUser, token);
 
     return {
-      user: payload,
-      tokens: {
-        accessToken,
-        refreshToken,
-      },
+      accessToken,
+      refreshToken,
+      expiredInAccessToken,
     };
   }
 
   async login(user: any) {
-    const { email, password } = user;
-
-    // 1. generate access token and refresh token
+    // generate access token and refresh token
     const payload = {
-      id: user.id,
+      userId: user.id,
       email: user.email,
     };
 
-    const { accessToken, refreshToken } = await this.createTokenPair(payload);
+    const { accessToken, refreshToken, expiredInAccessToken } =
+      await this.createTokenPair(payload);
 
-    await this.keyTokenService.create(user.id, {
+    await this.tokenService.create(user.email, {
       refreshTokenUsing: refreshToken,
     });
+
     return {
-      token: accessToken,
+      accessToken,
+      refreshToken,
+      expiredInAccessToken,
     };
   }
 
   async logout(headers: any) {
     const userId = headers[Headers.CLIENT_ID];
 
-    const deletedKeyToken = await this.keyTokenService.deleteByUserId(userId);
-
-    console.log({
-      deletedKeyToken,
-    });
+    const deletedKeyToken = await this.tokenService.deleteByUserId(userId);
 
     return {
       deletedKeyToken,
@@ -115,6 +108,80 @@ export class AuthService {
     return null;
   }
 
+  async requestAccessToken(refreshToken: string) {
+    // 1. check exist refreshToken?
+    if (!refreshToken) {
+      throw new BadRequestException('refreshToken missing!');
+    }
+
+    // 2. decode
+    const decodeToken = await this.jwtService
+      .verifyAsync(refreshToken)
+      .catch(() => {
+        throw new UnauthorizedException(
+          'Timeout or invalid refreshToken. Please login again!',
+        );
+      });
+
+    // 2. check refreshToken is used ? By Check refreshTokenUsed in db
+    const foundedTokenUsed =
+      await this.tokenService.findTokenUsed(refreshToken);
+
+    console.log({
+      foundedTokenUsed,
+    });
+
+    // 2.1 available refreshToken
+    if (foundedTokenUsed) {
+      // console.log({ decodeToken });
+
+      const { userId } = decodeToken;
+
+      // 2.2 delete refreshToken store in db
+      const deletedToken = await this.tokenService.deleteByUserId(userId);
+
+      // console.log({ deletedToken });
+
+      // 2.3 finally throw error
+      throw new UnauthorizedException(
+        'Something went wrong! please login again.',
+      );
+    }
+
+    // 3. check this refreshToken is truly using by this user
+    const holderToken = await this.tokenService.findByTokenUsing(refreshToken);
+
+    console.log({
+      holderToken,
+    });
+
+    if (!holderToken) {
+      throw new UnauthorizedException('Invalid token or not registered');
+    }
+
+    const holderUser = await this.usersService.findOneById(holderToken.user.id);
+
+    // 4. generate new access
+    const payload = {
+      userId: holderUser.id,
+      email: holderUser.email,
+    };
+
+    const { expiredInAccessToken, ...tokens } =
+      await this.createTokenPair(payload);
+
+    // 5. update new token
+    holderToken.refreshTokenUsing = tokens.accessToken;
+    holderToken.refreshTokenUsed.push(refreshToken);
+
+    await this.tokenService.update(holderToken);
+
+    return {
+      ...tokens,
+      expiredInAccessToken,
+    };
+  }
+
   async createTokenPair(payload) {
     const accessToken = await this.jwtService.signAsync(payload, {
       expiresIn: process.env.EXPIRE_AT,
@@ -124,9 +191,12 @@ export class AuthService {
       expiresIn: process.env.EXPIRE_RT,
     });
 
+    const expiredInAccessToken = this.jwtService.verify(accessToken).exp;
+
     return {
       accessToken,
       refreshToken,
+      expiredInAccessToken,
     };
   }
 }
