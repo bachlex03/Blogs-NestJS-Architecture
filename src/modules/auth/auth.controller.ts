@@ -5,12 +5,13 @@ import {
   Headers,
   UseGuards,
   Req,
+  Get,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterUserDto } from '../users/dto/register-user.dto';
 import { LocalAuthGuard } from './guard/local-auth.guard';
 import { Request } from 'express';
-import { User } from '../users/entities/user.entity';
+import { JwtAuthGuard } from './guard/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -24,11 +25,16 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
   login(@Req() req: Request) {
-    return this.authService.login(req.user as User);
+    return this.authService.login(req.user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('protected')
+  getInfo(@Req() req: Request) {
+    return req.user;
   }
 
   @Post('logout')
-  // @UseGuards(AuthGuard)
   logout(@Headers() header) {
     return this.authService.logout(header);
   }

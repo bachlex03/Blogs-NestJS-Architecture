@@ -70,7 +70,7 @@ export class AuthService {
     };
   }
 
-  async login(user: User) {
+  async login(user: any) {
     const { email, password } = user;
 
     // 1. generate access token and refresh token
@@ -103,11 +103,13 @@ export class AuthService {
     };
   }
 
-  async validateUser(email: string, password: string): Promise<any> {
+  async validateUser(email: string, password: string): Promise<User | null> {
     const user = await this.usersService.findOneByEmail(email);
 
     if (user && (await bcrypt.compare(password, user.password))) {
-      return user;
+      const { password, ...remain } = user;
+
+      return remain as User;
     }
 
     return null;
