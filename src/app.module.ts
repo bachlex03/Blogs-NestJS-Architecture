@@ -9,7 +9,6 @@ import { KeyTokenModule } from './modules/key-token/key-token.module';
 import { MailModule } from './modules/mail/mail.module';
 import { MailService } from './modules/mail/mail.service';
 import { EventsModule } from './modules/websocket/events.module';
-import { RolesModule } from './modules/roles/roles.module';
 
 @Module({
   imports: [
@@ -20,7 +19,6 @@ import { RolesModule } from './modules/roles/roles.module';
     KeyTokenModule,
     MailModule,
     EventsModule,
-    RolesModule,
   ],
   controllers: [AppController],
   providers: [AppService, MailService],

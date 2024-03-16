@@ -1,10 +1,8 @@
-import { UUID } from 'crypto';
 import {
   Column,
   CreateDateColumn,
   Entity,
   JoinColumn,
-  ManyToMany,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -12,7 +10,25 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 import { Blog } from 'src/modules/blogs/entities/blog.entity';
-import { Role } from 'src/modules/roles/entities/role.entity';
+
+export enum Roles {
+  ADMIN = 'ADMIN',
+  USER = 'USER',
+  VIEWER = 'VIEWER',
+}
+
+export enum Permissions {
+  POST = 'POST',
+  VIEW = 'VIEW',
+  COMMENT = 'COMMENT',
+  ACCEPT_POST = 'ACCEPT_POST',
+  DELETE_POST = 'ACCEPT_DELETE',
+}
+
+export const RolePermissions = {
+  [Roles.ADMIN]: [Permissions.POST, Permissions.VIEW],
+  [Roles.USER]: [Permissions.POST, Permissions.VIEW],
+};
 
 @Entity({ name: 'userInfo' })
 export class UserInfo {
@@ -26,9 +42,6 @@ export class UserInfo {
   @OneToMany(() => Blog, (blog) => blog.userInfo)
   blogs: Blog[];
 
-  @OneToMany(() => Role, (role) => role.id)
-  role: Role[];
-
   @Column({ default: '' })
   fistName: string;
 
@@ -37,6 +50,9 @@ export class UserInfo {
 
   @Column({ default: '' })
   phoneNumber: string;
+
+  @Column({ type: 'enum', enum: Roles, default: Roles.USER })
+  role: Roles;
 
   @Column({ type: 'boolean', default: true })
   isActive: boolean;

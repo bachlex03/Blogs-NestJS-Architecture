@@ -1,22 +1,16 @@
 import {
   Controller,
-  Get,
   Post,
   Body,
-  Patch,
-  Delete,
   Headers,
-  Header,
   UseGuards,
-  ParseUUIDPipe,
-  ParseIntPipe,
-  Param,
+  Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterUserDto } from '../users/dto/register-user.dto';
-import { LoginDto } from './dto/login.dto';
-import { AuthGuard } from './guard/header.guard';
-import { UUID } from 'crypto';
+import { LocalAuthGuard } from './guard/local-auth.guard';
+import { Request } from 'express';
+import { User } from '../users/entities/user.entity';
 
 @Controller('auth')
 export class AuthController {
@@ -27,13 +21,14 @@ export class AuthController {
     return this.authService.signUp(registerUserDto);
   }
 
+  @UseGuards(LocalAuthGuard)
   @Post('login')
-  login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
+  login(@Req() req: Request) {
+    return this.authService.login(req.user as User);
   }
 
   @Post('logout')
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   logout(@Headers() header) {
     return this.authService.logout(header);
   }

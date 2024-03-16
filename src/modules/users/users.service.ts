@@ -2,38 +2,51 @@ import {
   Injectable,
   ForbiddenException,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { RegisterUserDto } from './dto/register-user.dto';
+import { UserInfo } from './entities/user-info.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectRepository(User) private userRepository: Repository<User>,
+    @InjectRepository(User) private userRepo: Repository<User>,
+    @InjectRepository(UserInfo) private userInfoRepo: Repository<UserInfo>,
   ) {}
 
   async create(registerUserDto: RegisterUserDto): Promise<User> {
     console.log({
       registerUserDto,
     });
-    const user = this.userRepository.create(registerUserDto);
+    const user = this.userRepo.create(registerUserDto);
 
-    return await this.userRepository.save(user);
+    const savedUser = await this.userRepo.save(user);
+
+    if (!savedUser) throw new BadRequestException("Can't register user");
+
+    const userInfo = this.userInfoRepo.create({
+      user: savedUser,
+    });
+
+    const savedInfo = await this.userInfoRepo.save(userInfo);
+
+    return savedUser;
   }
 
   async findAll(): Promise<User[]> {
-    return await this.userRepository.find();
+    return await this.userRepo.find();
   }
 
   async findOneById(id: number): Promise<User | null> {
-    return await this.userRepository.findOneBy(null);
+    return await this.userRepo.findOneBy(null);
   }
 
   async findOneByEmail(email: string): Promise<User | null> {
-    return await this.userRepository.findOneBy({ email });
+    return await this.userRepo.findOneBy({ email });
   }
 
   async updateById(id: number, updateUserDto: UpdateUserDto) {
@@ -41,7 +54,7 @@ export class UsersService {
 
     if (!user) throw new ForbiddenException('User not found !');
 
-    return await this.userRepository.update(id, updateUserDto);
+    return await this.userRepo.update(id, updateUserDto);
   }
 
   // async updatePasswordByEmail(email: string, updateUserDto: UpdateUserDto) {
@@ -49,20 +62,20 @@ export class UsersService {
   //     email,
   //   };
 
-  //   const user = await this.userRepository.findOneBy({ email });
+  //   const user = await this.userRepo.findOneBy({ email });
 
   //   if (!user) throw new NotFoundException('Email not found !');
 
-  //   return await this.userRepository.update(options, {
+  //   return await this.userRepo.update(options, {
   //     password: updateUserDto.password,
   //   });
   // }
 
   deleteById(id: number) {
-    return this.userRepository.delete(null);
+    return this.userRepo.delete(null);
   }
 
   remove(id: number) {
-    return this.userRepository.delete(id);
+    return this.userRepo.delete(id);
   }
 }

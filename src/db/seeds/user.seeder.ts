@@ -11,10 +11,6 @@ export default class UserSeeder implements Seeder {
   ): Promise<void> {
     await dataSource.query('TRUNCATE TABLE user;');
 
-    console.log({
-      message: 'Test',
-    });
-
     const repository = dataSource.getRepository(User);
 
     await repository.insert({

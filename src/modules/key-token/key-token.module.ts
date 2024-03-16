@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { KeyTokenService } from './key-token.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { KeyToken } from './entities/key-token.entity';
-import { UsersService } from '../users/users.service';
 import { UsersModule } from '../users/users.module';
 
 @Module({

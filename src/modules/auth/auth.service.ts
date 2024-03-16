@@ -12,6 +12,7 @@ import { LoginDto } from './dto/login.dto';
 import { Headers } from 'src/constants';
 import { UUID } from 'crypto';
 import { MailService } from '../mail/mail.service';
+import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -49,19 +50,16 @@ export class AuthService {
     const secret = process.env.SECRET_KEY;
 
     // generate accessToken and refreshToken
-    const { accessToken, refreshToken } = await this.createTokenPair(
-      payload,
-      secret,
-    );
+    const { accessToken, refreshToken } = await this.createTokenPair(payload);
 
     const keyStore = await this.keyTokenService.create(savedUser.id, {
       refreshTokenUsing: refreshToken,
     });
 
     // Send email
-    const token = Math.floor(1000 + Math.random() * 9000).toString();
+    // const token = Math.floor(1000 + Math.random() * 9000).toString();
 
-    await this.mailerService.sendUserConfirmation(savedUser, token);
+    // await this.mailerService.sendUserConfirmation(savedUser, token);
 
     return {
       user: payload,
@@ -72,46 +70,22 @@ export class AuthService {
     };
   }
 
-  async login(loginDto: LoginDto) {
-    // 1. check exist email?
-    const user = await this.usersService.findOneByEmail(loginDto.email);
+  async login(user: User) {
+    const { email, password } = user;
 
-    console.log({ user });
-
-    if (!user) {
-      throw new BadRequestException('Invalid user!');
-    }
-
-    // 2. check password
-    const isMatch = bcrypt.compare(loginDto.password, user.password);
-
-    if (!isMatch) {
-      throw new BadRequestException('Invalid password');
-    }
-
-    // 3. generate access token and refresh token
+    // 1. generate access token and refresh token
     const payload = {
-      userId: user.id,
+      id: user.id,
       email: user.email,
     };
 
-    const secret = process.env.SECRET_KEY;
+    const { accessToken, refreshToken } = await this.createTokenPair(payload);
 
-    const { accessToken, refreshToken } = await this.createTokenPair(
-      payload,
-      secret,
-    );
-
-    const keyToken = await this.keyTokenService.create(user.id, {
+    await this.keyTokenService.create(user.id, {
       refreshTokenUsing: refreshToken,
     });
-
     return {
-      user: payload,
-      tokens: {
-        accessToken,
-        refreshToken,
-      },
+      token: accessToken,
     };
   }
 
@@ -129,15 +103,23 @@ export class AuthService {
     };
   }
 
-  async createTokenPair(payload, secret) {
+  async validateUser(email: string, password: string): Promise<any> {
+    const user = await this.usersService.findOneByEmail(email);
+
+    if (user && (await bcrypt.compare(password, user.password))) {
+      return user;
+    }
+
+    return null;
+  }
+
+  async createTokenPair(payload) {
     const accessToken = await this.jwtService.signAsync(payload, {
       expiresIn: process.env.EXPIRE_AT,
-      secret,
     });
 
     const refreshToken = await this.jwtService.signAsync(payload, {
       expiresIn: process.env.EXPIRE_RT,
-      secret,
     });
 
     return {
