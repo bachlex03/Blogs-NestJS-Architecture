@@ -41,7 +41,7 @@ export class AuthService {
 
     // 4. generate accessToken and refreshToken using JWT
     const payload = {
-      user_id: newUser.id,
+      userId: newUser.id,
       email: newUser.email,
     };
 
@@ -49,8 +49,9 @@ export class AuthService {
     const { accessToken, refreshToken, expiredInAccessToken } =
       await this.createTokenPair(payload);
 
-    await this.tokenService.create(newUser.email, {
-      refreshTokenUsing: refreshToken,
+    await this.tokenService.create(newUser.id, {
+      accessToken: accessToken,
+      refreshToken: refreshToken,
     });
 
     // Send email
@@ -75,8 +76,9 @@ export class AuthService {
     const { accessToken, refreshToken, expiredInAccessToken } =
       await this.createTokenPair(payload);
 
-    await this.tokenService.create(user.email, {
-      refreshTokenUsing: refreshToken,
+    await this.tokenService.create(user.id, {
+      refreshToken: refreshToken,
+      accessToken: accessToken,
     });
 
     return {
@@ -106,6 +108,11 @@ export class AuthService {
     }
 
     return null;
+  }
+
+  async validateAccessToken(accessToken: string): Promise<boolean> {
+    const foundedToken = await this.tokenService.getAccessToken(accessToken);
+    return foundedToken ? true : false;
   }
 
   async requestAccessToken(refreshToken: string) {
@@ -171,7 +178,7 @@ export class AuthService {
       await this.createTokenPair(payload);
 
     // 5. update new token
-    holderToken.refreshTokenUsing = tokens.accessToken;
+    holderToken.refreshToken = tokens.accessToken;
     holderToken.refreshTokenUsed.push(refreshToken);
 
     await this.tokenService.update(holderToken);

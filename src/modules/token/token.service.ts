@@ -13,15 +13,16 @@ export class TokenService {
     private readonly usersService: UsersService,
   ) {}
 
-  async create(email: string, saveTokenDto: SaveTokenDto) {
-    const user = await this.usersService.findOneByEmail(email);
+  async create(userId: string, saveTokenDto: SaveTokenDto) {
+    const user = await this.usersService.findOneById(userId);
 
     if (!user) throw new BadRequestException('User not found !');
 
     let token = await this.TokenRepo.findOne({ where: { user } });
 
     if (token) {
-      token.refreshTokenUsing = saveTokenDto.refreshTokenUsing;
+      token.accessToken = saveTokenDto.accessToken;
+      token.refreshToken = saveTokenDto.refreshToken;
       token.refreshTokenUsed = saveTokenDto.refreshTokenUsed;
     } else {
       token = this.TokenRepo.create({
@@ -44,7 +45,14 @@ export class TokenService {
 
   async findByTokenUsing(refreshToken: string): Promise<Token> {
     return await this.TokenRepo.findOne({
-      where: { refreshTokenUsing: refreshToken },
+      where: { refreshToken },
+      relations: ['user'],
+    });
+  }
+
+  async getAccessToken(accessToken: string): Promise<Token> {
+    return await this.TokenRepo.findOne({
+      where: { accessToken },
       relations: ['user'],
     });
   }

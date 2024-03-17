@@ -3,5 +3,7 @@ import { UUID } from 'crypto';
 export class SaveTokenDto {
   refreshTokenUsed?: string[];
 
-  refreshTokenUsing: string;
+  refreshToken: string;
+
+  accessToken: string;
 }

@@ -23,5 +23,8 @@ export class Token {
   refreshTokenUsed: string[];
 
   @Column()
-  refreshTokenUsing: string;
+  refreshToken: string;
+
+  @Column()
+  accessToken: string;
 }
