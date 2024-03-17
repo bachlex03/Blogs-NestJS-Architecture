@@ -11,7 +11,6 @@ import { AuthService } from './auth.service';
 import { RegisterUserDto } from '../users/dto/register-user.dto';
 import { LocalAuthGuard } from './guard/local-auth.guard';
 import { Request } from 'express';
-import { JwtAuthGuard } from './guard/jwt-auth.guard';
 import { Role } from 'src/common/enums/role.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Public } from 'src/common/decorators/public.decorator';
