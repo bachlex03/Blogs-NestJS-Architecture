@@ -12,6 +12,8 @@ import { RegisterUserDto } from '../users/dto/register-user.dto';
 import { LocalAuthGuard } from './guard/local-auth.guard';
 import { Request } from 'express';
 import { JwtAuthGuard } from './guard/jwt-auth.guard';
+import { Role } from 'src/common/enums/role.enum';
+import { Roles } from 'src/common/decorators/roles.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -41,6 +43,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('protected')
+  @Roles(Role.ADMIN, Role.USER)
   getInfo(@Req() req: Request) {
     return req.user;
   }

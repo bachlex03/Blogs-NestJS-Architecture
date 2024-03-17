@@ -1,6 +1,6 @@
 import { TypeOrmModuleAsyncOptions } from '@nestjs/typeorm';
 
-import config from '../configs/env.config';
+import config from '../common/configs/env.config';
 import { SeederOptions } from 'typeorm-extension';
 import * as dotenv from 'dotenv';
 

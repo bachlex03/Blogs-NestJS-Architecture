@@ -10,25 +10,20 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 import { Blog } from 'src/modules/blogs/entities/blog.entity';
+import { Role } from 'src/common/enums/role.enum';
 
-export enum Roles {
-  ADMIN = 'ADMIN',
-  USER = 'USER',
-  VIEWER = 'VIEWER',
-}
+// export enum Permissions {
+//   POST = 'POST',
+//   VIEW = 'VIEW',
+//   COMMENT = 'COMMENT',
+//   ACCEPT_POST = 'ACCEPT_POST',
+//   DELETE_POST = 'ACCEPT_DELETE',
+// }
 
-export enum Permissions {
-  POST = 'POST',
-  VIEW = 'VIEW',
-  COMMENT = 'COMMENT',
-  ACCEPT_POST = 'ACCEPT_POST',
-  DELETE_POST = 'ACCEPT_DELETE',
-}
-
-export const RolePermissions = {
-  [Roles.ADMIN]: [Permissions.POST, Permissions.VIEW],
-  [Roles.USER]: [Permissions.POST, Permissions.VIEW],
-};
+// export const RolePermissions = {
+//   [Roles.ADMIN]: [Permissions.POST, Permissions.VIEW],
+//   [Roles.USER]: [Permissions.POST, Permissions.VIEW],
+// };
 
 @Entity({ name: 'userInfo' })
 export class UserInfo {
@@ -51,8 +46,8 @@ export class UserInfo {
   @Column({ default: '' })
   phoneNumber: string;
 
-  @Column({ type: 'enum', enum: Roles, default: Roles.USER })
-  role: Roles;
+  @Column({ type: 'enum', enum: Role, default: Role.USER })
+  role: Role[];
 
   @Column({ type: 'boolean', default: true })
   isActive: boolean;
