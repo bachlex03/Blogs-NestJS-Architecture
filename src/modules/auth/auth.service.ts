@@ -8,9 +8,9 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
 import { TokenService } from '../token/token.service';
-import { Headers } from 'src/constants';
 import { MailService } from '../mail/mail.service';
 import { User } from '../users/entities/user.entity';
+import { Role } from 'src/common/enums/role.enum';
 
 @Injectable()
 export class AuthService {
@@ -43,6 +43,7 @@ export class AuthService {
     const payload = {
       userId: newUser.id,
       email: newUser.email,
+      roles: [Role.USER],
     };
 
     // generate accessToken and refreshToken
@@ -63,6 +64,7 @@ export class AuthService {
       accessToken,
       refreshToken,
       expiredInAccessToken,
+      roles: [Role.USER],
     };
   }
 
@@ -71,6 +73,7 @@ export class AuthService {
     const payload = {
       userId: user.id,
       email: user.email,
+      roles: [Role.USER],
     };
 
     const { accessToken, refreshToken, expiredInAccessToken } =
@@ -85,6 +88,7 @@ export class AuthService {
       accessToken,
       refreshToken,
       expiredInAccessToken,
+      roles: [Role.USER],
     };
   }
 

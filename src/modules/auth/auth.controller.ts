@@ -14,6 +14,7 @@ import { Request } from 'express';
 import { JwtAuthGuard } from './guard/jwt-auth.guard';
 import { Role } from 'src/common/enums/role.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
+import { Public } from 'src/common/decorators/public.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -24,13 +25,13 @@ export class AuthController {
     return this.authService.signUp(registerUserDto);
   }
 
+  @Public()
   @UseGuards(LocalAuthGuard)
   @Post('login')
   login(@Req() req: Request) {
     return this.authService.login(req.user);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Post('logout')
   logout(@Req() req: Request) {
     return this.authService.logout(req.user);
@@ -41,7 +42,6 @@ export class AuthController {
     return this.authService.requestAccessToken(refreshToken);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get('protected')
   @Roles(Role.ADMIN, Role.USER)
   getInfo(@Req() req: Request) {

@@ -15,10 +15,23 @@ export class RolesGuard implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
+    const isPublicRoute = this.reflector.getAllAndOverride('publicRoute', [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if (isPublicRoute) {
+      return true;
+    }
+
     const requireRoles = this.reflector.getAllAndOverride<Role[]>('roles', [
       context.getHandler(),
       context.getClass(),
     ]);
+
+    if (!requireRoles) {
+      throw new ForbiddenException('You need permission !');
+    }
 
     let { user } = context.switchToHttp().getRequest();
 
@@ -30,7 +43,7 @@ export class RolesGuard implements CanActivate {
     const isAllow = requireRoles.some((role) => user.roles.includes(role));
 
     if (!isAllow) {
-      throw new ForbiddenException('Your permissions is allowed !');
+      throw new ForbiddenException('Your permissions is not allowed !');
     }
 
     return isAllow;
