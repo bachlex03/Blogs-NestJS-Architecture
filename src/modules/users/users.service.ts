@@ -6,47 +6,37 @@ import {
 } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './entities/user.entity';
+// import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { UserInfo } from './entities/user-info.entity';
+import { PrismaService } from 'prisma/prisma.service';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @InjectRepository(User) private userRepo: Repository<User>,
-    @InjectRepository(UserInfo) private userInfoRepo: Repository<UserInfo>,
-  ) {}
+  constructor(private prismaService: PrismaService) {}
 
   async create(registerUserDto: RegisterUserDto): Promise<User> {
-    console.log({
-      registerUserDto,
-    });
-    const user = this.userRepo.create(registerUserDto);
-
-    const savedUser = await this.userRepo.save(user);
-
-    if (!savedUser) throw new BadRequestException("Can't register user");
-
-    const userInfo = this.userInfoRepo.create({
-      user: savedUser,
+    const user = await this.prismaService.user.create({
+      data: { ...registerUserDto },
     });
 
-    const savedInfo = await this.userInfoRepo.save(userInfo);
-
-    return savedUser;
+    return user;
   }
 
-  async findAll(): Promise<User[]> {
-    return await this.userRepo.find();
+  // async findAll(): Promise<User[]> {
+  //   return await this.userRepo.find();
+  // }
+
+  async findOneById(id: string): Promise<User> {
+    return await this.prismaService.user.findUnique({ where: { id } });
   }
 
-  async findOneById(id: string): Promise<User | null> {
-    return await this.userRepo.findOneBy({ id });
-  }
+  async findOneByEmail(email: string): Promise<User> {
+    const user = await this.prismaService.user.findUnique({ where: { email } });
 
-  async findOneByEmail(email: string): Promise<User | null> {
-    return await this.userRepo.findOneBy({ email });
+    return user;
   }
 
   async updateById(id: number, updateUserDto: UpdateUserDto) {
@@ -69,11 +59,11 @@ export class UsersService {
   //   });
   // }
 
-  deleteById(id: number) {
-    return this.userRepo.delete(null);
-  }
+  // deleteById(id: number) {
+  //   return this.userRepo.delete(null);
+  // }
 
-  remove(id: number) {
-    return this.userRepo.delete(id);
-  }
+  // remove(id: number) {
+  //   return this.userRepo.delete(id);
+  // }
 }

@@ -1,67 +1,73 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { FindOptionsWhere, Repository } from 'typeorm';
-import { Token } from './entities/token.entity';
-import { InjectRepository } from '@nestjs/typeorm';
+import { Injectable } from '@nestjs/common';
 import { SaveTokenDto } from './dto/save-token.dto';
 import { UsersService } from '../users/users.service';
+import { PrismaService } from 'prisma/prisma.service';
+import { Token, User } from '@prisma/client';
 
 @Injectable()
 export class TokenService {
   constructor(
-    @InjectRepository(Token)
-    private readonly TokenRepo: Repository<Token>,
+    private prismaService: PrismaService,
     private readonly usersService: UsersService,
   ) {}
 
-  async create(userId: string, saveTokenDto: SaveTokenDto) {
-    const user = await this.usersService.findOneById(userId);
+  async create(user: User, saveTokenDto: SaveTokenDto) {
+    // const foundedUser = await this.usersService.findOneById(user.id);
 
-    if (!user) throw new BadRequestException('User not found !');
+    // if (!foundedUser) throw new BadRequestException('User not found !');
 
-    let token = await this.TokenRepo.findOne({ where: { user } });
+    let token = await this.prismaService.token.findUnique({
+      where: { userId: user.id },
+    });
 
     if (token) {
-      token.accessToken = saveTokenDto.accessToken;
-      token.refreshToken = saveTokenDto.refreshToken;
-      token.refreshTokenUsed = saveTokenDto.refreshTokenUsed;
-    } else {
-      token = this.TokenRepo.create({
-        user: user,
+      token = {
+        ...token,
         ...saveTokenDto,
+      };
+    } else {
+      token = await this.prismaService.token.create({
+        data: { ...saveTokenDto, userId: user.id },
       });
     }
-    return await this.TokenRepo.save(token);
+
+    return await this.prismaService.token.upsert({
+      where: { id: token.id },
+      update: { ...token },
+      create: { ...token },
+    });
   }
 
   async update(token: Token) {
-    return this.TokenRepo.save(token);
-  }
-
-  async findTokenUsed(refreshToken: string): Promise<Token> {
-    return await this.TokenRepo.findOne({
-      where: { refreshTokenUsed: refreshToken },
+    return await this.prismaService.token.update({
+      where: { id: token.id },
+      data: { ...token },
     });
   }
 
-  async findByTokenUsing(refreshToken: string): Promise<Token> {
-    return await this.TokenRepo.findOne({
+  async findByRefreshTokenUsed(refreshToken: string): Promise<Token> {
+    return await this.prismaService.token.findFirst({
+      where: {
+        refreshTokenUsed: { hasSome: [refreshToken] },
+      },
+    });
+  }
+
+  async findByRefreshToken(refreshToken: string): Promise<Token | null> {
+    return await this.prismaService.token.findFirst({
       where: { refreshToken },
-      relations: ['user'],
     });
   }
 
-  async getAccessToken(accessToken: string): Promise<Token> {
-    return await this.TokenRepo.findOne({
+  async findAccessToken(accessToken: string): Promise<Token | null> {
+    return await this.prismaService.token.findFirst({
       where: { accessToken },
-      relations: ['user'],
     });
   }
 
-  async deleteByUserId(userId: string) {
-    return await this.TokenRepo.createQueryBuilder()
-      .delete()
-      .from(Token)
-      .where('user = :userId', { userId })
-      .execute();
+  async deleteByUserId(userId: string): Promise<Token> {
+    return await this.prismaService.token.delete({ where: { userId } });
+
+    return null;
   }
 }

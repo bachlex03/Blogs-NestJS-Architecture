@@ -16,7 +16,7 @@ export class UsersController {
 
   @Get()
   findAll() {
-    return this.usersService.findAll();
+    // return this.usersService.findAll();
   }
 
   @Get(':id')
@@ -42,6 +42,6 @@ export class UsersController {
 
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.deleteById(+id);
+    // return this.usersService.deleteById(+id);
   }
 }

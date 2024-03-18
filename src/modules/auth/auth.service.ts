@@ -1,5 +1,8 @@
 import {
   BadRequestException,
+  HttpCode,
+  HttpException,
+  HttpStatus,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -9,8 +12,9 @@ import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
 import { TokenService } from '../token/token.service';
 import { MailService } from '../mail/mail.service';
-import { User } from '../users/entities/user.entity';
+// import { User } from '../users/entities/user.entity';
 import { Role } from 'src/common/enums/role.enum';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -32,7 +36,7 @@ export class AuthService {
     // 2. hashing password
     registerUserDto.password = await bcrypt.hash(registerUserDto.password, 10);
 
-    // 3. save
+    // 3. create
     const newUser = await this.usersService.create(registerUserDto);
 
     if (!newUser) {
@@ -43,16 +47,15 @@ export class AuthService {
     const payload = {
       userId: newUser.id,
       email: newUser.email,
-      roles: [Role.USER],
+      roles: newUser.roles,
     };
 
-    // generate accessToken and refreshToken
     const { accessToken, refreshToken, expiredInAccessToken } =
       await this.createTokenPair(payload);
 
-    await this.tokenService.create(newUser.id, {
-      accessToken: accessToken,
-      refreshToken: refreshToken,
+    await this.tokenService.create(newUser, {
+      accessToken,
+      refreshToken,
     });
 
     // Send email
@@ -64,22 +67,22 @@ export class AuthService {
       accessToken,
       refreshToken,
       expiredInAccessToken,
-      roles: [Role.USER],
+      roles: newUser.roles,
     };
   }
 
-  async login(user: any) {
+  async login(user: User) {
     // generate access token and refresh token
     const payload = {
       userId: user.id,
       email: user.email,
-      roles: [Role.USER],
+      roles: user.roles,
     };
 
     const { accessToken, refreshToken, expiredInAccessToken } =
       await this.createTokenPair(payload);
 
-    await this.tokenService.create(user.id, {
+    await this.tokenService.create(user, {
       refreshToken: refreshToken,
       accessToken: accessToken,
     });
@@ -88,7 +91,7 @@ export class AuthService {
       accessToken,
       refreshToken,
       expiredInAccessToken,
-      roles: [Role.USER],
+      roles: user.roles,
     };
   }
 
@@ -97,12 +100,12 @@ export class AuthService {
 
     const deletedKeyToken = await this.tokenService.deleteByUserId(userId);
 
-    return {
-      deletedKeyToken,
-    };
+    if (deletedKeyToken) {
+      throw new HttpException('Logout successful', HttpStatus.OK);
+    }
   }
 
-  async validateUser(email: string, password: string): Promise<User | null> {
+  async validateUser(email: string, password: string): Promise<User> {
     const user = await this.usersService.findOneByEmail(email);
 
     if (user && (await bcrypt.compare(password, user.password))) {
@@ -115,7 +118,7 @@ export class AuthService {
   }
 
   async validateAccessToken(accessToken: string): Promise<boolean> {
-    const foundedToken = await this.tokenService.getAccessToken(accessToken);
+    const foundedToken = await this.tokenService.findAccessToken(accessToken);
     return foundedToken ? true : false;
   }
 
@@ -134,54 +137,44 @@ export class AuthService {
         );
       });
 
-    // 2. check refreshToken is used ? By Check refreshTokenUsed in db
+    // 3. check refreshToken is used ? By Check refreshTokenUsed in db
     const foundedTokenUsed =
-      await this.tokenService.findTokenUsed(refreshToken);
+      await this.tokenService.findByRefreshTokenUsed(refreshToken);
 
-    console.log({
-      foundedTokenUsed,
-    });
-
-    // 2.1 available refreshToken
+    // 3.1 available refreshToken
     if (foundedTokenUsed) {
-      // console.log({ decodeToken });
-
       const { userId } = decodeToken;
 
-      // 2.2 delete refreshToken store in db
+      // 3.2 delete refreshToken store in db
       const deletedToken = await this.tokenService.deleteByUserId(userId);
 
-      // console.log({ deletedToken });
-
-      // 2.3 finally throw error
+      // 3.3 finally throw error
       throw new UnauthorizedException(
         'Something went wrong! please login again.',
       );
     }
 
-    // 3. check this refreshToken is truly using by this user
-    const holderToken = await this.tokenService.findByTokenUsing(refreshToken);
-
-    console.log({
-      holderToken,
-    });
+    // 4. check this refreshToken is truly using by this user
+    const holderToken =
+      await this.tokenService.findByRefreshToken(refreshToken);
 
     if (!holderToken) {
       throw new UnauthorizedException('Invalid token or not registered');
     }
 
-    const holderUser = await this.usersService.findOneById(holderToken.user.id);
+    const holderUser = await this.usersService.findOneById(holderToken.userId);
 
     // 4. generate new access
     const payload = {
       userId: holderUser.id,
       email: holderUser.email,
+      roles: holderUser.roles,
     };
 
     const { expiredInAccessToken, ...tokens } =
       await this.createTokenPair(payload);
 
-    // 5. update new token
+    // 5. update old AT and push old AT to RefreshTokenUsed[]
     holderToken.refreshToken = tokens.accessToken;
     holderToken.refreshTokenUsed.push(refreshToken);
 

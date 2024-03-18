@@ -9,6 +9,7 @@ import { MailModule } from './modules/mail/mail.module';
 import { MailService } from './modules/mail/mail.service';
 import { EventsModule } from './modules/websocket/events.module';
 import { TokenModule } from './modules/token/token.module';
+import { PrismaModule } from 'prisma/prisma.module';
 
 @Module({
   imports: [
