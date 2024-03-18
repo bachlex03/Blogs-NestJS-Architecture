@@ -6,7 +6,7 @@ import { config } from './common/configs/swagger.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.setGlobalPrefix('/v1/api');
+  app.setGlobalPrefix('/api/v1');
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
   // Config Swagger

@@ -1,18 +1,18 @@
 import {
   BadRequestException,
   ForbiddenException,
-  HttpException,
   HttpStatus,
   Injectable,
   UnauthorizedException,
+  HttpCode,
 } from '@nestjs/common';
 import { RegisterDto } from './dto/register.dto';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
 import { TokenService } from '../token/token.service';
 import { MailService } from '../mail/mail.service';
 import { User } from '@prisma/client';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class AuthService {
@@ -69,7 +69,7 @@ export class AuthService {
     };
   }
 
-  async login(user: User) {
+  async login(user: any) {
     // generate access token and refresh token
     const payload = {
       userId: user.id,
@@ -99,7 +99,10 @@ export class AuthService {
     const deletedKeyToken = await this.tokenService.deleteByUserId(userId);
 
     if (deletedKeyToken) {
-      throw new HttpException('Logout successful', HttpStatus.OK);
+      return {
+        message: 'Logout successful',
+        code: HttpStatus.OK,
+      };
     }
   }
 

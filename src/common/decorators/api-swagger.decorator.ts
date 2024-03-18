@@ -1,6 +1,5 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiForbiddenResponse } from '@nestjs/swagger';
-import { BadRequestException, ForbiddenException } from '@nestjs/common';
 
 const customBadRequestSchema = {
   example: {
@@ -10,7 +9,10 @@ const customBadRequestSchema = {
   },
 };
 
-export function CustomApiBadRequest(description: string, message: string) {
+export function CustomApiBadRequestException(
+  description: string,
+  message: string,
+) {
   return applyDecorators(
     ApiBadRequestResponse({
       schema: {

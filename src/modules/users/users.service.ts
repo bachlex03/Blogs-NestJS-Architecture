@@ -1,9 +1,14 @@
-import { Injectable } from '@nestjs/common';
-import { UpdateUserDto } from './dto/update-user.dto';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { RegisterDto } from '../auth/dto/register.dto';
 import { PrismaService } from 'prisma/prisma.service';
 import { User } from '@prisma/client';
-
+import { UpdatePasswordDto } from './dto/update-password.dto';
+import * as bcrypt from 'bcrypt';
 @Injectable()
 export class UsersService {
   constructor(private prismaService: PrismaService) {}
@@ -16,9 +21,9 @@ export class UsersService {
     return user;
   }
 
-  // async findAll(): Promise<User[]> {
-  //   return await this.userRepo.find();
-  // }
+  async findAll(): Promise<User[]> {
+    return await this.prismaService.user.findMany();
+  }
 
   async findOneById(id: string): Promise<User> {
     return await this.prismaService.user.findUnique({ where: { id } });
@@ -30,31 +35,76 @@ export class UsersService {
     return user;
   }
 
-  async updateById(id: number, updateUserDto: UpdateUserDto) {
-    // const user = await this.findOneById(id);
-    // if (!user) throw new ForbiddenException('User not found !');
-    // return await this.userRepo.update(id, updateUserDto);
+  async resetPassword(id: string): Promise<any> {
+    const user = await this.findOneById(id);
+
+    if (!user) {
+      throw new BadRequestException('Invalid user');
+    }
+
+    const alphabet = 'abcdefghijklmnopqrstuvwxyz';
+    let randomPass = '';
+
+    for (let i = 0; i < 6; i++) {
+      const randomIndex = Math.floor(Math.random() * alphabet.length);
+      randomPass += alphabet[randomIndex];
+    }
+
+    const newPass = await bcrypt.hash(randomPass, 10);
+
+    user.password = newPass;
+
+    await this.prismaService.user.update({
+      where: { id },
+      data: { ...user },
+    });
+
+    return {
+      userId: user.id,
+      newPassword: randomPass,
+    };
   }
 
-  // async updatePasswordByEmail(email: string, updateUserDto: UpdateUserDto) {
-  //   const options: FindOptionsWhere<User> = {
-  //     email,
-  //   };
+  async updatePassword(id: string, updatePasswordDto: UpdatePasswordDto) {
+    const user = await this.findOneById(id);
 
-  //   const user = await this.userRepo.findOneBy({ email });
+    if (!user) {
+      throw new BadRequestException('Invalid user');
+    }
 
-  //   if (!user) throw new NotFoundException('Email not found !');
+    const isMatched = await bcrypt.compare(
+      updatePasswordDto.oldPassword,
+      user.password,
+    );
 
-  //   return await this.userRepo.update(options, {
-  //     password: updateUserDto.password,
-  //   });
-  // }
+    if (!isMatched) {
+      throw new BadRequestException('Wrong old password');
+    }
 
-  // deleteById(id: number) {
-  //   return this.userRepo.delete(null);
-  // }
+    const newPass = await bcrypt.hash(updatePasswordDto.newPassword, 10);
 
-  // remove(id: number) {
-  //   return this.userRepo.delete(id);
-  // }
+    user.password = newPass;
+
+    try {
+      await this.prismaService.user.update({
+        where: { id },
+        data: { ...user },
+      });
+    } catch (err) {
+      throw new BadRequestException(err);
+    }
+  }
+
+  async deleteById(id: string) {
+    const deletedUser = await this.prismaService.user.delete({ where: { id } });
+
+    if (!deletedUser) {
+      throw new BadRequestException("Can't delete user");
+    }
+
+    return {
+      message: 'Delete successful',
+      code: HttpStatus.OK,
+    };
+  }
 }

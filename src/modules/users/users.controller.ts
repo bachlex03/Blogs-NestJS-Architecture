@@ -6,44 +6,68 @@ import {
   Param,
   Delete,
   ParseIntPipe,
+  Req,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { Role } from 'src/common/enums/role.enum';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { Request } from 'express';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Controller('users')
 @ApiTags('Users')
+@ApiSecurity('JWT-auth')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  /**
+   * [ADMIN] Get all users
+   */
   @Get()
-  findAll() {
-    // return this.usersService.findAll();
+  @Roles(Role.ADMIN)
+  async findAll() {
+    return await this.usersService.findAll();
   }
 
+  /**
+   * [ADMIN] Get user by user id
+   */
   @Get(':id')
-  findOneById(@Param('id', ParseIntPipe) id: number) {
-    // return this.usersService.findOneById(id);
+  @Roles(Role.ADMIN)
+  async findOneById(@Param('id') id: string) {
+    return await this.usersService.findOneById(id);
   }
 
-  @Patch(':id')
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateUserDto: UpdateUserDto,
+  /**
+   * [USER] can change own password
+   */
+  @Patch('me/password')
+  @Roles(Role.USER)
+  updatePassword(
+    @Body() updatePasswordDto: UpdatePasswordDto,
+    @Req() req: Request,
   ) {
-    return this.usersService.updateById(id, updateUserDto);
+    const { userId } = req.user as any;
+
+    return this.usersService.updatePassword(userId, updatePasswordDto);
   }
 
-  // @Patch('email/:email')
-  // updatePasswordByEmail(
-  //   @Param('email') email: string,
-  //   @Body() updateUserDto: UpdateUserDto,
-  // ) {
-  //   return this.usersService.updatePasswordByEmail(email, updateUserDto);
-  // }
+  /**
+   * [ADMIN] can reset password of user
+   */
+  @Patch(':id/password')
+  @Roles(Role.ADMIN)
+  changePassword(@Param('id') id: string) {
+    return this.usersService.resetPassword(id);
+  }
 
+  /**
+   * [ADMIN] can delete user
+   */
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    // return this.usersService.deleteById(+id);
+  @Roles(Role.ADMIN)
+  delete(@Param('id') id: string) {
+    return this.usersService.deleteById(id);
   }
 }

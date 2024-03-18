@@ -1,4 +1,13 @@
-import { Controller, Post, Body, UseGuards, Req, Get } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Req,
+  Get,
+  HttpCode,
+  UseInterceptors,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LocalAuthGuard } from './guard/local-auth.guard';
@@ -18,9 +27,10 @@ import {
 import { ResponseSignupDto } from './dto/response-signup.dto';
 import { ResponseLoginDto } from './dto/response-login.dto';
 import {
-  CustomApiBadRequest,
+  CustomApiBadRequestException,
   CustomForbiddenException,
 } from 'src/common/decorators/api-swagger.decorator';
+import { FormatResponseInterceptor } from 'src/common/interceptors/format-response.interceptor';
 
 @Controller('auth')
 @ApiBearerAuth()
@@ -34,12 +44,13 @@ export class AuthController {
    */
   @Public()
   @Post('signup')
+  @HttpCode(201)
   @ApiCreatedResponse({
     description:
       "Return token pair access token, refresh token with expired time of AT and user'roles",
     type: ResponseSignupDto,
   })
-  @CustomApiBadRequest('', 'email must be an email')
+  @CustomApiBadRequestException('', 'email must be an email')
   @CustomForbiddenException('', 'User is registered !')
   signUp(@Body() registerDto: RegisterDto) {
     return this.authService.signUp(registerDto);
@@ -51,6 +62,7 @@ export class AuthController {
   @Public()
   @UseGuards(LocalAuthGuard)
   @Post('login')
+  @HttpCode(200)
   @ApiBody({
     schema: {
       type: 'object',
@@ -72,7 +84,7 @@ export class AuthController {
     type: ResponseLoginDto,
   })
   login(@Req() req: Request) {
-    return this.authService.login(req.user as User);
+    return this.authService.login(req.user);
   }
 
   /**
@@ -80,6 +92,7 @@ export class AuthController {
    */
   @Post('logout')
   @Roles(Role.ADMIN, Role.USER)
+  @HttpCode(200)
   logout(@Req() req: Request) {
     return this.authService.logout(req.user);
   }
@@ -91,7 +104,7 @@ export class AuthController {
     schema: {
       type: 'object',
       properties: {
-        accessToken: {
+        refreshToken: {
           type: 'string',
         },
       },
