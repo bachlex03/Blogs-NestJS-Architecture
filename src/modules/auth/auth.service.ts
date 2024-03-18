@@ -1,19 +1,17 @@
 import {
   BadRequestException,
-  HttpCode,
+  ForbiddenException,
   HttpException,
   HttpStatus,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { RegisterUserDto } from '../users/dto/register-user.dto';
+import { RegisterDto } from './dto/register.dto';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
 import { TokenService } from '../token/token.service';
 import { MailService } from '../mail/mail.service';
-// import { User } from '../users/entities/user.entity';
-import { Role } from 'src/common/enums/role.enum';
 import { User } from '@prisma/client';
 
 @Injectable()
@@ -25,19 +23,19 @@ export class AuthService {
     private mailerService: MailService,
   ) {}
 
-  async signUp(registerUserDto: RegisterUserDto) {
+  async signUp(registerDto: RegisterDto) {
     // 1. Checking exist email ?
-    const user = await this.usersService.findOneByEmail(registerUserDto.email);
+    const user = await this.usersService.findOneByEmail(registerDto.email);
 
     if (user) {
-      throw new BadRequestException('User is registered !');
+      throw new ForbiddenException('User is registered !');
     }
 
     // 2. hashing password
-    registerUserDto.password = await bcrypt.hash(registerUserDto.password, 10);
+    registerDto.password = await bcrypt.hash(registerDto.password, 10);
 
     // 3. create
-    const newUser = await this.usersService.create(registerUserDto);
+    const newUser = await this.usersService.create(registerDto);
 
     if (!newUser) {
       throw new BadRequestException("Can't register !");

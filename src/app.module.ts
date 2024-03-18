@@ -13,9 +13,9 @@ import { PrismaModule } from 'prisma/prisma.module';
 
 @Module({
   imports: [
+    AuthModule,
     UsersModule,
     BlogsModule,
-    AuthModule,
     DatabaseModule,
     TokenModule,
     MailModule,

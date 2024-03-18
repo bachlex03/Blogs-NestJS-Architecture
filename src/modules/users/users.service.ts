@@ -1,15 +1,6 @@
-import {
-  Injectable,
-  ForbiddenException,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-// import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
-import { RegisterUserDto } from './dto/register-user.dto';
-import { UserInfo } from './entities/user-info.entity';
+import { RegisterDto } from '../auth/dto/register.dto';
 import { PrismaService } from 'prisma/prisma.service';
 import { User } from '@prisma/client';
 
@@ -17,9 +8,9 @@ import { User } from '@prisma/client';
 export class UsersService {
   constructor(private prismaService: PrismaService) {}
 
-  async create(registerUserDto: RegisterUserDto): Promise<User> {
+  async create(registerDto: RegisterDto): Promise<User> {
     const user = await this.prismaService.user.create({
-      data: { ...registerUserDto },
+      data: { ...registerDto },
     });
 
     return user;
