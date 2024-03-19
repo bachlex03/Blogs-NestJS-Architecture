@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { TokenService } from './token.service';
+import { TokenService } from './tokens.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from '../users/users.module';
 import { Token } from './entities/token.entity';

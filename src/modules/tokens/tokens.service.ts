@@ -67,7 +67,5 @@ export class TokenService {
 
   async deleteByUserId(userId: string): Promise<Token> {
     return await this.prismaService.token.delete({ where: { userId } });
-
-    return null;
   }
 }

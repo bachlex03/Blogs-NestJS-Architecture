@@ -5,20 +5,19 @@ import {
   Body,
   Patch,
   Param,
-  Delete,
   Req,
   Query,
-  Put,
+  BadRequestException,
+  Delete,
 } from '@nestjs/common';
 import { BlogsService } from './blogs.service';
 import { CreateBlogDto } from './dto/create-blog.dto';
 import { Request } from 'express';
-import { ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/common/enums/role.enum';
 import { StatusDto } from './dto/status.dto';
 import { Public } from 'src/common/decorators/public.decorator';
-import { StatusEnum } from 'src/common/enums/blog-status.enum';
 import { BlogActionsDto } from './dto/actions.dto';
 
 @Controller('blogs')
@@ -49,8 +48,44 @@ export class BlogsController {
    */
   @Post()
   @Roles(Role.ADMIN, Role.USER)
-  async create(@Body() createBlogDto: CreateBlogDto, @Req() req: Request) {
-    return await this.blogsService.create(req, createBlogDto);
+  async requestCreate(
+    @Body() createBlogDto: CreateBlogDto,
+    @Req() req: Request,
+  ) {
+    const { userId } = req.user as any;
+
+    return await this.blogsService.requestCreate(userId, createBlogDto);
+  }
+
+  /**
+   * [ADMIN, USER] Can comment a blog (done)
+   */
+  @Post(':blogId/comment')
+  @Roles(Role.ADMIN, Role.USER)
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        content: {
+          type: 'string',
+        },
+      },
+    },
+  })
+  async commentOnBlog(
+    @Param('blogId') blogId: number,
+    @Req() req: Request,
+    @Body('content') content: string,
+  ) {
+    if (!content) throw new BadRequestException('Comment do not empty !');
+
+    const { userId } = req.user as any;
+
+    return await this.blogsService.commentOnBlog({
+      blogId,
+      authorId: userId,
+      content,
+    });
   }
 
   /**
@@ -63,5 +98,25 @@ export class BlogsController {
     @Param('blogId') blogId: number,
   ) {
     return await this.blogsService.blogActions(blogId, query.action);
+  }
+
+  /**
+   * [ADMIN, USER] Can delete blog but ADMIN must approve user'blog (done)
+   */
+  @Patch(':blogId/requestDelete')
+  @Roles(Role.ADMIN, Role.USER)
+  async requestDelete(@Param('blogId') blogId: number, @Req() req: Request) {
+    const { userId } = req.user as any;
+
+    return await this.blogsService.requestDelete(blogId, userId);
+  }
+
+  /**
+   * [ADMIN] Approve delete request from user
+   */
+  @Delete(':blogId')
+  @Roles(Role.ADMIN)
+  async delete(@Param('blogId') blogId: number) {
+    return await this.blogsService.delete(blogId);
   }
 }

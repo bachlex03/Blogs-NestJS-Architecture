@@ -4,15 +4,20 @@ import { PrismaService } from 'prisma/prisma.service';
 import { Blog } from '.prisma/client';
 import { Status as StatusPrisma } from '@prisma/client';
 import { StatusEnum } from 'src/common/enums/blog-status.enum';
-import { BlogActionsDto } from './dto/actions.dto';
+import { CommentsService } from '../comments/comments.service';
+import { CreateCommentDto } from '../comments/dto/create-comment.dto';
 
 @Injectable()
 export class BlogsService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    private commentService: CommentsService,
+  ) {}
 
-  async create(req: any, createBlogDto: CreateBlogDto): Promise<Blog> {
-    const { userId } = req.user;
-
+  async requestCreate(
+    userId: string,
+    createBlogDto: CreateBlogDto,
+  ): Promise<Blog> {
     const blog = await this.prismaService.blog.create({
       data: { ...createBlogDto, authorId: userId },
     });
@@ -22,6 +27,17 @@ export class BlogsService {
     }
 
     return blog;
+  }
+
+  async commentOnBlog(createCommentDto: CreateCommentDto) {
+    const comment = await this.commentService.create(createCommentDto);
+
+    if (!comment) throw new BadRequestException('Can not on this blog');
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Commented',
+    };
   }
 
   async findAllByStatus(status: StatusEnum): Promise<Blog[]> {
@@ -36,9 +52,49 @@ export class BlogsService {
     });
   }
 
-  async findApprovedBlogs(): Promise<Blog[]> {
-    return await this.prismaService.blog.findMany({
+  async findApprovedBlogs(): Promise<any[]> {
+    const blogs = await this.prismaService.blog.findMany({
+      select: {
+        title: true,
+        content: true,
+        createAt: true,
+        author: {
+          select: {
+            name: true,
+          },
+        },
+        comments: {
+          select: {
+            comment: {
+              select: {
+                author: {
+                  select: {
+                    name: true,
+                  },
+                },
+                createAt: true,
+                content: true,
+              },
+            },
+          },
+        },
+      },
       where: { status: StatusEnum.APPROVED },
+    });
+
+    return blogs.map((blog) => {
+      const cmts = blog.comments.map((cmt) => {
+        return {
+          author: cmt.comment.author.name,
+          content: cmt.comment.content,
+          createAt: cmt.comment.createAt,
+        };
+      });
+
+      return {
+        ...blog,
+        comments: cmts,
+      };
     });
   }
 
@@ -58,5 +114,41 @@ export class BlogsService {
       message: 'Approved !',
       statusCode: HttpStatus.OK,
     };
+  }
+
+  async requestDelete(blogId: number, userId: string) {
+    return await this.prismaService.blog.update({
+      where: {
+        id: blogId,
+        authorId: userId,
+      },
+      data: {
+        status: StatusPrisma.PENDING_DELETION,
+      },
+    });
+  }
+
+  async delete(blogId: number) {
+    try {
+      const blog = await this.prismaService.blog.delete({
+        where: {
+          id: blogId,
+          status: StatusPrisma.PENDING_DELETION,
+        },
+      });
+
+      if (!blog) {
+        throw new BadRequestException('Blog is not in pending deletion');
+      }
+
+      await this.commentService.deleteCommentsNotBelongToBlog();
+
+      return {
+        message: 'Delete successful',
+        statusCode: HttpStatus.OK,
+      };
+    } catch (err) {
+      throw new BadRequestException('Something went wrong when delete');
+    }
   }
 }

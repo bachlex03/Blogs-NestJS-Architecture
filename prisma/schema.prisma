@@ -49,18 +49,10 @@ model Blog {
   updatedAt DateTime?  @updatedAt
   author User @relation(fields: [authorId], references: [id])
   authorId String 
-  comments CommentsOnBlogs[] 
-  // relatedBlogs Blog[] @relation(name: "relatedBlogs", )
+  comments CommentsOnBlogs[] @relation(name: "blog_comment")
 }
 
-// model RelatedBlogs {
-//   blog Blog @relation(name: "test", fields: [blogId], references: [id])
-//   blogId Int
-//   // relatedBlog Blog @relation(name: "test", fields: [relatedBlogId], references: [id])
-//   // relatedBlogId Int
 
-//   // @@id([blogId, relatedBlogId])
-// }
 
 
 model Comment {
@@ -69,13 +61,13 @@ model Comment {
   createAt  DateTime? @default(now())
   author User @relation(fields: [authorId], references: [id])
   authorId String
-  blogs CommentsOnBlogs[]
+  blogs CommentsOnBlogs[] 
 }
 
 model CommentsOnBlogs {
-  blog Blog @relation(fields: [blogId], references: [id])
+  blog Blog @relation(name: "blog_comment" ,fields: [blogId], references: [id], onDelete: Cascade)
   blogId Int
-  comment Comment @relation(fields: [commentId], references: [id])
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
   commentId Int
 
   @@id([blogId, commentId])

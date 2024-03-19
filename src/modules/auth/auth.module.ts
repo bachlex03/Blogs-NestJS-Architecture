@@ -7,7 +7,7 @@ import { MailModule } from '../mail/mail.module';
 import { LocalStrategy } from './strategies/local.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { TokenModule } from '../token/token.module';
+import { TokenModule } from '../tokens/tokens.module';
 
 @Module({
   imports: [
