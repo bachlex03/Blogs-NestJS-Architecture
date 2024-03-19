@@ -131,7 +131,7 @@ export class AuthService {
 
     // 2. decode
     const decodeToken = await this.jwtService
-      .verifyAsync(refreshToken)
+      .verifyAsync(refreshToken, { secret: process.env.SECRET_KEY })
       .catch(() => {
         throw new UnauthorizedException(
           'Timeout or invalid refreshToken. Please login again!',

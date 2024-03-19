@@ -6,6 +6,7 @@ import { Blog } from './entities/blog.entity';
 import { Comment } from './entities/comment.entity';
 import { PrismaModule } from 'prisma/prisma.module';
 import { CommentsModule } from '../comments/comments.module';
+import { PrismaService } from 'prisma/prisma.service';
 
 @Module({
   imports: [
@@ -15,5 +16,6 @@ import { CommentsModule } from '../comments/comments.module';
   ],
   controllers: [BlogsController],
   providers: [BlogsService],
+  exports: [BlogsService],
 })
 export class BlogsModule {}

@@ -6,13 +6,19 @@ import { Status as StatusPrisma } from '@prisma/client';
 import { StatusEnum } from 'src/common/enums/blog-status.enum';
 import { CommentsService } from '../comments/comments.service';
 import { CreateCommentDto } from '../comments/dto/create-comment.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class BlogsService {
   constructor(
     private prismaService: PrismaService,
     private commentService: CommentsService,
+    private eventEmitter: EventEmitter2,
   ) {}
+
+  async findById(blogId: number) {
+    return await this.prismaService.blog.findFirst({ where: { id: blogId } });
+  }
 
   async requestCreate(
     userId: string,
@@ -33,6 +39,13 @@ export class BlogsService {
     const comment = await this.commentService.create(createCommentDto);
 
     if (!comment) throw new BadRequestException('Can not on this blog');
+
+    this.eventEmitter.emit('comment', {
+      authorComment: createCommentDto.authorId,
+      content: createCommentDto.content,
+      blogId: createCommentDto.blogId,
+      authorBlog: (await this.findById(createCommentDto.blogId)).authorId,
+    });
 
     return {
       statusCode: HttpStatus.OK,
