@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -21,6 +15,8 @@ model User {
   roles      Role[] @default([USER])
   profile   Profile?
   token     Token?
+  blogs Blog[] 
+  comments Comment[]
 }
 
 model Token {
@@ -30,6 +26,7 @@ model Token {
   accessToken String
   user User @relation(fields: [userId], references: [id])
   userId String @unique
+   
 }
 
 model Profile {
@@ -40,28 +37,38 @@ model Profile {
   updatedAt DateTime?  @updatedAt
   user User @relation(fields: [userId], references: [id])
   userId String @unique
-  comments Comment[]
-  blogs Blog[]
+  
 }
 
 model Blog {
   id Int @id @default(autoincrement())
   title String
   content String @db.Text
-  status Status @default(PENDDING_APPROVAL)
+  status Status @default(PENDING_APPROVAL)
   createAt  DateTime? @default(now())
   updatedAt DateTime?  @updatedAt
-  author Profile @relation(fields: [authorId], references: [id])
-  authorId Int
-  comments CommentsOnBlogs[]
+  author User @relation(fields: [authorId], references: [id])
+  authorId String 
+  comments CommentsOnBlogs[] 
+  // relatedBlogs Blog[] @relation(name: "relatedBlogs", )
 }
+
+// model RelatedBlogs {
+//   blog Blog @relation(name: "test", fields: [blogId], references: [id])
+//   blogId Int
+//   // relatedBlog Blog @relation(name: "test", fields: [relatedBlogId], references: [id])
+//   // relatedBlogId Int
+
+//   // @@id([blogId, relatedBlogId])
+// }
+
 
 model Comment {
   id Int @id @default(autoincrement())
   content String
   createAt  DateTime? @default(now())
-  author Profile @relation(fields: [authorId], references: [id])
-  authorId Int
+  author User @relation(fields: [authorId], references: [id])
+  authorId String
   blogs CommentsOnBlogs[]
 }
 
@@ -81,6 +88,8 @@ enum Role {
 }
 
 enum Status {
-  PENDDING_APPROVAL
-  PENDDING_DELETION
+  PENDING_APPROVAL
+  APPROVED
+  PENDING_DELETION
+  DELETED
 }

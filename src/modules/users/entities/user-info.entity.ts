@@ -12,19 +12,6 @@ import { User } from './user.entity';
 import { Blog } from 'src/modules/blogs/entities/blog.entity';
 import { Role } from 'src/common/enums/role.enum';
 
-// export enum Permissions {
-//   POST = 'POST',
-//   VIEW = 'VIEW',
-//   COMMENT = 'COMMENT',
-//   ACCEPT_POST = 'ACCEPT_POST',
-//   DELETE_POST = 'ACCEPT_DELETE',
-// }
-
-// export const RolePermissions = {
-//   [Roles.ADMIN]: [Permissions.POST, Permissions.VIEW],
-//   [Roles.USER]: [Permissions.POST, Permissions.VIEW],
-// };
-
 @Entity({ name: 'userInfo' })
 export class UserInfo {
   @PrimaryGeneratedColumn()

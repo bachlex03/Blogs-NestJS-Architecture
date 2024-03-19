@@ -13,6 +13,7 @@ import { PrismaModule } from 'prisma/prisma.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './modules/auth/guard/jwt-auth.guard';
 import { RolesGuard } from './modules/auth/guard/role.guard';
+import { ProfilesModule } from './modules/profiles/profiles.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { RolesGuard } from './modules/auth/guard/role.guard';
     TokenModule,
     MailModule,
     EventsModule,
+    ProfilesModule,
   ],
   controllers: [AppController],
   providers: [

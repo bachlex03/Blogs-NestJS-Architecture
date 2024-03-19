@@ -1,12 +1,7 @@
-import {
-  BadRequestException,
-  HttpException,
-  HttpStatus,
-  Injectable,
-} from '@nestjs/common';
+import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
 import { RegisterDto } from '../auth/dto/register.dto';
 import { PrismaService } from 'prisma/prisma.service';
-import { User } from '@prisma/client';
+import { Role, User } from '@prisma/client';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import * as bcrypt from 'bcrypt';
 @Injectable()
@@ -15,7 +10,15 @@ export class UsersService {
 
   async create(registerDto: RegisterDto): Promise<User> {
     const user = await this.prismaService.user.create({
-      data: { ...registerDto },
+      data: {
+        ...registerDto,
+        profile: {
+          create: {},
+        },
+      },
+      include: {
+        profile: true,
+      },
     });
 
     return user;

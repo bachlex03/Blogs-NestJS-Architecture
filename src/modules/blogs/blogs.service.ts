@@ -1,35 +1,62 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateBlogDto } from './dto/create-blog.dto';
-import { UpdateBlogDto } from './dto/update-blog.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Blog } from './entities/blog.entity';
-import { Repository } from 'typeorm';
+import { PrismaService } from 'prisma/prisma.service';
+import { Blog } from '.prisma/client';
+import { Status as StatusPrisma } from '@prisma/client';
+import { StatusEnum } from 'src/common/enums/blog-status.enum';
+import { BlogActionsDto } from './dto/actions.dto';
 
 @Injectable()
 export class BlogsService {
-  constructor(
-    @InjectRepository(Blog) private readonly BlogRepo: Repository<Blog>,
-  ) {}
+  constructor(private prismaService: PrismaService) {}
 
-  create(createBlogDto: CreateBlogDto) {
-    // this.BlogRepo.create({...createBlogDto, userInfo: { id: createBlogDto.id}})
+  async create(req: any, createBlogDto: CreateBlogDto): Promise<Blog> {
+    const { userId } = req.user;
 
-    return 'This action adds a new blog';
+    const blog = await this.prismaService.blog.create({
+      data: { ...createBlogDto, authorId: userId },
+    });
+
+    if (!blog) {
+      throw new BadRequestException('Can not create blog');
+    }
+
+    return blog;
   }
 
-  findAll() {
-    return `This action returns all blogs`;
+  async findAllByStatus(status: StatusEnum): Promise<Blog[]> {
+    if (status == StatusEnum.ALL) {
+      return await this.prismaService.blog.findMany();
+    }
+
+    return await this.prismaService.blog.findMany({
+      where: {
+        status,
+      },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} blog`;
+  async findApprovedBlogs(): Promise<Blog[]> {
+    return await this.prismaService.blog.findMany({
+      where: { status: StatusEnum.APPROVED },
+    });
   }
 
-  update(id: number, updateBlogDto: UpdateBlogDto) {
-    return `This action updates a #${id} blog`;
-  }
+  async blogActions(blogId: number, action: StatusPrisma) {
+    const blog = await this.prismaService.blog.update({
+      where: { id: blogId },
+      data: {
+        status: action,
+      },
+    });
 
-  remove(id: number) {
-    return `This action removes a #${id} blog`;
+    if (!blog) {
+      throw new BadRequestException("Can't approve blog");
+    }
+
+    return {
+      message: 'Approved !',
+      statusCode: HttpStatus.OK,
+    };
   }
 }
