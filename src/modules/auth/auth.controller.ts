@@ -6,7 +6,6 @@ import {
   Req,
   Get,
   HttpCode,
-  UseInterceptors,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
@@ -15,7 +14,6 @@ import { Request } from 'express';
 import { Role } from 'src/common/enums/role.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Public } from 'src/common/decorators/public.decorator';
-import { User } from '@prisma/client';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -30,7 +28,6 @@ import {
   CustomApiBadRequestException,
   CustomForbiddenException,
 } from 'src/common/decorators/api-swagger.decorator';
-import { FormatResponseInterceptor } from 'src/common/interceptors/format-response.interceptor';
 
 @Controller('auth')
 @ApiBearerAuth()
@@ -114,11 +111,5 @@ export class AuthController {
   @Roles(Role.ADMIN, Role.USER)
   generateAccessToken(@Body('refreshToken') refreshToken: string) {
     return this.authService.requestAccessToken(refreshToken);
-  }
-
-  @Get('protected')
-  @Roles(Role.ADMIN, Role.USER)
-  getInfo(@Req() req: Request) {
-    return req.user;
   }
 }

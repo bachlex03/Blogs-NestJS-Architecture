@@ -58,37 +58,6 @@ export class BlogsController {
   }
 
   /**
-   * [ADMIN, USER] Can comment a blog (done)
-   */
-  @Post(':blogId/comment')
-  @Roles(Role.ADMIN, Role.USER)
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        content: {
-          type: 'string',
-        },
-      },
-    },
-  })
-  async commentOnBlog(
-    @Param('blogId') blogId: number,
-    @Req() req: Request,
-    @Body('content') content: string,
-  ) {
-    if (!content) throw new BadRequestException('Comment do not empty !');
-
-    const { userId } = req.user as any;
-
-    return await this.blogsService.commentOnBlog({
-      blogId,
-      authorId: userId,
-      content,
-    });
-  }
-
-  /**
    * [ADMIN] approve or delete blogs (done)
    */
   @Patch(':blogId')

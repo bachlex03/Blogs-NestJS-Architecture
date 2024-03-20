@@ -5,17 +5,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Blog } from './entities/blog.entity';
 import { Comment } from './entities/comment.entity';
 import { PrismaModule } from 'prisma/prisma.module';
-import { CommentsModule } from '../comments/comments.module';
-import { PrismaService } from 'prisma/prisma.service';
+import { CommentsService } from '../comments/comments.service';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Blog, Comment]),
-    PrismaModule,
-    CommentsModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Blog, Comment]), PrismaModule],
   controllers: [BlogsController],
-  providers: [BlogsService],
+  providers: [BlogsService, CommentsService],
   exports: [BlogsService],
 })
 export class BlogsModule {}

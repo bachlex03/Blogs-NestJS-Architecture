@@ -1,4 +1,10 @@
-import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  forwardRef,
+} from '@nestjs/common';
 import { CreateBlogDto } from './dto/create-blog.dto';
 import { PrismaService } from 'prisma/prisma.service';
 import { Blog } from '.prisma/client';
@@ -11,9 +17,10 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 @Injectable()
 export class BlogsService {
   constructor(
-    private prismaService: PrismaService,
+    @Inject(forwardRef(() => CommentsService))
     private commentService: CommentsService,
-    private eventEmitter: EventEmitter2,
+    private prismaService: PrismaService,
+    // private eventEmitter: EventEmitter2,
   ) {}
 
   async findById(blogId: number) {
@@ -35,23 +42,23 @@ export class BlogsService {
     return blog;
   }
 
-  async commentOnBlog(createCommentDto: CreateCommentDto) {
-    const comment = await this.commentService.create(createCommentDto);
+  // async commentOnBlog(createCommentDto: CreateCommentDto) {
+  //   const comment = await this.commentService.create(createCommentDto);
 
-    if (!comment) throw new BadRequestException('Can not on this blog');
+  //   if (!comment) throw new BadRequestException('Can not on this blog');
 
-    this.eventEmitter.emit('comment', {
-      authorComment: createCommentDto.authorId,
-      content: createCommentDto.content,
-      blogId: createCommentDto.blogId,
-      authorBlog: (await this.findById(createCommentDto.blogId)).authorId,
-    });
+  //   this.eventEmitter.emit('comment', {
+  //     authorComment: createCommentDto.authorId,
+  //     content: createCommentDto.content,
+  //     blogId: createCommentDto.blogId,
+  //     authorBlog: (await this.findById(createCommentDto.blogId)).authorId,
+  //   });
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Commented',
-    };
-  }
+  //   return {
+  //     statusCode: HttpStatus.OK,
+  //     message: 'Commented',
+  //   };
+  // }
 
   async findAllByStatus(status: StatusEnum): Promise<Blog[]> {
     if (status == StatusEnum.ALL) {
