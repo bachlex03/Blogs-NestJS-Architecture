@@ -8,13 +8,39 @@ import { User } from '.prisma/client';
 export class ProfilesService {
   constructor(private prismaService: PrismaService) {}
 
-  create(user: User) {
-    const profile = this.prismaService.profile.create({
+  async findAll() {
+    return await this.prismaService.profile.findMany();
+  }
+
+  async findByUsername(username: string) {
+    return await this.prismaService.profile.findFirst({
+      where: { user: { username } },
+    });
+  }
+
+  async findByUserId(userId: string) {
+    return await this.prismaService.profile.findUnique({ where: { userId } });
+  }
+
+  async getMe(userId: string) {
+    return await this.prismaService.profile.findUnique({ where: { userId } });
+  }
+
+  async update(userId: string, updateProfileDto: UpdateProfileDto) {
+    return await this.prismaService.profile.update({
+      where: { userId },
       data: {
-        userId: user.id,
+        ...updateProfileDto,
       },
     });
+  }
 
-    return 'This action adds a new profile';
+  async updateSome(userId: string, updateProfileDto: UpdateProfileDto) {
+    return await this.prismaService.profile.update({
+      where: { userId },
+      data: {
+        ...updateProfileDto,
+      },
+    });
   }
 }

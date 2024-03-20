@@ -20,7 +20,7 @@ export class BlogsService {
     @Inject(forwardRef(() => CommentsService))
     private commentService: CommentsService,
     private prismaService: PrismaService,
-    // private eventEmitter: EventEmitter2,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async findById(blogId: number) {
@@ -42,23 +42,23 @@ export class BlogsService {
     return blog;
   }
 
-  // async commentOnBlog(createCommentDto: CreateCommentDto) {
-  //   const comment = await this.commentService.create(createCommentDto);
+  async commentOnBlog(createCommentDto: CreateCommentDto) {
+    const comment = await this.commentService.create(createCommentDto);
 
-  //   if (!comment) throw new BadRequestException('Can not on this blog');
+    if (!comment) throw new BadRequestException('Can not on this blog');
 
-  //   this.eventEmitter.emit('comment', {
-  //     authorComment: createCommentDto.authorId,
-  //     content: createCommentDto.content,
-  //     blogId: createCommentDto.blogId,
-  //     authorBlog: (await this.findById(createCommentDto.blogId)).authorId,
-  //   });
+    this.eventEmitter.emit('comment', {
+      authorComment: createCommentDto.authorId,
+      content: createCommentDto.content,
+      blogId: createCommentDto.blogId,
+      authorBlog: (await this.findById(createCommentDto.blogId)).authorId,
+    });
 
-  //   return {
-  //     statusCode: HttpStatus.OK,
-  //     message: 'Commented',
-  //   };
-  // }
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Commented',
+    };
+  }
 
   async findAllByStatus(status: StatusEnum): Promise<Blog[]> {
     if (status == StatusEnum.ALL) {
@@ -80,7 +80,7 @@ export class BlogsService {
         createAt: true,
         author: {
           select: {
-            name: true,
+            username: true,
           },
         },
         comments: {
@@ -89,7 +89,7 @@ export class BlogsService {
               select: {
                 author: {
                   select: {
-                    name: true,
+                    username: true,
                   },
                 },
                 createAt: true,
@@ -105,7 +105,7 @@ export class BlogsService {
     return blogs.map((blog) => {
       const cmts = blog.comments.map((cmt) => {
         return {
-          author: cmt.comment.author.name,
+          author: cmt.comment.author.username,
           content: cmt.comment.content,
           createAt: cmt.comment.createAt,
         };

@@ -10,6 +10,9 @@ import { join } from 'path';
       transport: {
         host: process.env.MAIL_HOST,
         secure: false,
+        tls: {
+          rejectUnauthorized: false,
+        },
         auth: {
           user: process.env.MAIL_USER,
           pass: process.env.MAIL_PASSWORD,
@@ -22,7 +25,7 @@ import { join } from 'path';
         dir: join(__dirname, 'templates'),
         adapter: new HandlebarsAdapter(),
         options: {
-          strict: true,
+          strict: false,
         },
       },
     }),

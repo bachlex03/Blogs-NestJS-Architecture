@@ -18,7 +18,7 @@ export class RegisterDto {
   password: string;
 
   /**
-   * Name of the user
+   * User of the user
    */
-  name?: string;
+  username?: string;
 }

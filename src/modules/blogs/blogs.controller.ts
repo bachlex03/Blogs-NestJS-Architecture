@@ -58,34 +58,62 @@ export class BlogsController {
   }
 
   /**
+   * [ADMIN, USER] Can comment a blog (done)
+   */
+  @Post(':blogId/comment')
+  @Roles(Role.ADMIN, Role.USER)
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        content: {
+          type: 'string',
+        },
+      },
+    },
+  })
+  async commentOnBlog(
+    @Param('blogId') blogId: number,
+    @Req() req: Request,
+    @Body('content') content: string,
+  ) {
+    if (!content) throw new BadRequestException('Comment do not empty !');
+
+    const { userId } = req.user as any;
+
+    return await this.blogsService.commentOnBlog({
+      blogId,
+      authorId: userId,
+      content,
+    });
+  }
+
+  /**
    * [ADMIN] approve or delete blogs (done)
    */
-  @Patch(':blogId')
+  @Patch(':id')
   @Roles(Role.ADMIN)
-  async blogActions(
-    @Query() query: BlogActionsDto,
-    @Param('blogId') blogId: number,
-  ) {
-    return await this.blogsService.blogActions(blogId, query.action);
+  async blogActions(@Query() query: BlogActionsDto, @Param('id') id: number) {
+    return await this.blogsService.blogActions(id, query.action);
   }
 
   /**
    * [ADMIN, USER] Can delete blog but ADMIN must approve user'blog (done)
    */
-  @Patch(':blogId/requestDelete')
+  @Patch(':id/requestDelete')
   @Roles(Role.ADMIN, Role.USER)
-  async requestDelete(@Param('blogId') blogId: number, @Req() req: Request) {
+  async requestDelete(@Param('id') id: number, @Req() req: Request) {
     const { userId } = req.user as any;
 
-    return await this.blogsService.requestDelete(blogId, userId);
+    return await this.blogsService.requestDelete(id, userId);
   }
 
   /**
-   * [ADMIN] Approve delete request from user
+   * [ADMIN] Approve delete request from user (done)
    */
-  @Delete(':blogId')
+  @Delete(':id')
   @Roles(Role.ADMIN)
-  async delete(@Param('blogId') blogId: number) {
-    return await this.blogsService.delete(blogId);
+  async delete(@Param('id') id: number) {
+    return await this.blogsService.delete(id);
   }
 }

@@ -1,37 +1,72 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-} from '@nestjs/common';
+import { Controller, Get, Body, Patch, Param, Put, Req } from '@nestjs/common';
 import { ProfilesService } from './profiles.service';
-import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { Role } from 'src/common/enums/role.enum';
+import { Request } from 'express';
+import { Public } from 'src/common/decorators/public.decorator';
+import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 
 @Controller('profiles')
+@ApiTags('Profiles')
+@ApiSecurity('JWT-auth')
 export class ProfilesController {
-  // constructor(private readonly profilesService: ProfilesService) {}
-  // @Post()
-  // create(@Body() createProfileDto: CreateProfileDto) {
-  //   return this.profilesService.create(createProfileDto);
-  // }
-  // @Get()
-  // findAll() {
-  //   return this.profilesService.findAll();
-  // }
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.profilesService.findOne(+id);
-  // }
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateProfileDto: UpdateProfileDto) {
-  //   return this.profilesService.update(+id, updateProfileDto);
-  // }
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.profilesService.remove(+id);
-  // }
+  constructor(private readonly profilesService: ProfilesService) {}
+
+  /**
+   * [ADMIN, USER] can find all profiles
+   */
+  @Get()
+  @Roles(Role.ADMIN)
+  async findAll() {
+    return await this.profilesService.findAll();
+  }
+
+  /**
+   * [ADMIN, USER] can view it's own profile
+   */
+  @Get('/me')
+  @Roles(Role.ADMIN, Role.USER)
+  async getMe(@Req() req: Request) {
+    const { userId } = req.user as any;
+
+    return await this.profilesService.getMe(userId);
+  }
+
+  /**
+   * [VIEWER] can view others profile
+   */
+  @Public()
+  @Get(':username')
+  async findByUsername(@Param() username: string) {
+    return await this.profilesService.findByUsername(username);
+  }
+
+  /**
+   * [ADMIN, USER] update some specific info in profile
+   */
+  @Patch()
+  @Roles(Role.ADMIN, Role.USER)
+  async updateSome(
+    @Body() updateProfileDto: UpdateProfileDto,
+    @Req() req: Request,
+  ) {
+    const { userId } = req.user as any;
+
+    return await this.profilesService.updateSome(userId, updateProfileDto);
+  }
+
+  /**
+   * [ADMIN, USER] update some specific info in profile
+   */
+  @Put()
+  @Roles(Role.ADMIN, Role.USER)
+  async update(
+    @Body() updateProfileDto: UpdateProfileDto,
+    @Req() req: Request,
+  ) {
+    const { userId } = req.user as any;
+
+    return await this.profilesService.update(userId, updateProfileDto);
+  }
 }

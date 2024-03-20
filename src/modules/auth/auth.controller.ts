@@ -37,7 +37,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   /**
-   * Create a new
+   * Create a new user (done)
    */
   @Public()
   @Post('signup')
@@ -54,7 +54,7 @@ export class AuthController {
   }
 
   /**
-   * Client do action login
+   * Client do action login (done)
    */
   @Public()
   @UseGuards(LocalAuthGuard)
@@ -85,7 +85,7 @@ export class AuthController {
   }
 
   /**
-   * Client do action logout
+   * Client do action logout (done)
    */
   @Post('logout')
   @Roles(Role.ADMIN, Role.USER)
@@ -95,7 +95,7 @@ export class AuthController {
   }
 
   /**
-   * Client request new access token by refresh token
+   * Client request new access token by refresh token (done)
    */
   @ApiBody({
     schema: {

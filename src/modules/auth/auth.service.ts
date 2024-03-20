@@ -57,15 +57,14 @@ export class AuthService {
     });
 
     // Send email
-    // const token = Math.floor(1000 + Math.random() * 9000).toString();
+    const token = Math.floor(1000 + Math.random() * 9000).toString();
 
-    // await this.mailerService.sendUserConfirmation(savedUser, token);
+    await this.mailerService.sendUserConfirmation(newUser, token);
 
     return {
       accessToken,
       refreshToken,
       expiredInAccessToken,
-      roles: newUser.roles,
     };
   }
 
@@ -89,7 +88,6 @@ export class AuthService {
       accessToken,
       refreshToken,
       expiredInAccessToken,
-      roles: user.roles,
     };
   }
 
