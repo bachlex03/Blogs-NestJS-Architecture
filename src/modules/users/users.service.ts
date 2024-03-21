@@ -4,6 +4,7 @@ import { PrismaService } from 'prisma/prisma.service';
 import { Role, User } from '@prisma/client';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import * as bcrypt from 'bcrypt';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 @Injectable()
 export class UsersService {
   constructor(private prismaService: PrismaService) {}
@@ -48,7 +49,7 @@ export class UsersService {
     const alphabet = 'abcdefghijklmnopqrstuvwxyz';
     let randomPass = '';
 
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 10; i++) {
       const randomIndex = Math.floor(Math.random() * alphabet.length);
       randomPass += alphabet[randomIndex];
     }
@@ -62,10 +63,11 @@ export class UsersService {
       data: { ...user },
     });
 
-    return {
-      userId: user.id,
-      newPassword: randomPass,
-    };
+    let res = new ResetPasswordDto();
+    res.message = 'Password reset successfully';
+    res.newPassword = randomPass;
+
+    return res;
   }
 
   async updatePassword(id: string, updatePasswordDto: UpdatePasswordDto) {
@@ -93,6 +95,10 @@ export class UsersService {
         where: { id },
         data: { ...user },
       });
+
+      return {
+        message: 'Password successfully updated',
+      };
     } catch (err) {
       throw new BadRequestException(err);
     }

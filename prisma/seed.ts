@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { users } from './seeds';
+import { users, profiles, comments, blogs } from './seeds';
 import { Role } from '@prisma/client';
 
 const prisma = new PrismaClient();

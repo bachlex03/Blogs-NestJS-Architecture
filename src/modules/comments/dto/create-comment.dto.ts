@@ -8,5 +8,5 @@ export class CreateCommentDto {
   authorId: string;
 
   @IsNotEmpty()
-  blogId: number;
+  id: number;
 }

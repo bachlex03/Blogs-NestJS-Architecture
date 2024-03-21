@@ -15,8 +15,8 @@ model User {
   roles                 Role[] @default([USER])
   profile               Profile? @relation("user_profile")
   token                 Token? @relation("user_token")
-  blogs                 Blog[] 
-  comments              Comment[]
+  blogs                 Blog[] @relation("user_blogs")
+  comments              Comment[] @relation("user_comments")
 }
 
 model Token {
@@ -50,7 +50,7 @@ model Blog {
   status                Status @default(PENDING_APPROVAL)
   createAt              DateTime? @default(now())
   updatedAt             DateTime?  @updatedAt
-  author                User @relation(fields: [authorId], references: [id])
+  author                User @relation(name: "user_blogs",fields: [authorId], references: [id], onDelete: Cascade)
   authorId              String 
   comments              CommentsOnBlogs[] @relation(name: "blog_comment")
 }
@@ -62,7 +62,7 @@ model Comment {
   id                    Int @id @default(autoincrement())
   content               String
   createAt              DateTime? @default(now())
-  author                User @relation(fields: [authorId], references: [id])
+  author                User @relation(name: "user_comments", fields: [authorId], references: [id], onDelete: Cascade)
   authorId              String
   blogs                 CommentsOnBlogs[] 
 }

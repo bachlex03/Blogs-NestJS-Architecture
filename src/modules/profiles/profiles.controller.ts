@@ -14,7 +14,7 @@ export class ProfilesController {
   constructor(private readonly profilesService: ProfilesService) {}
 
   /**
-   * [ADMIN, USER] can find all profiles
+   * [ADMIN] can find all profiles
    */
   @Get()
   @Roles(Role.ADMIN)
@@ -38,7 +38,7 @@ export class ProfilesController {
    */
   @Public()
   @Get(':username')
-  async findByUsername(@Param() username: string) {
+  async findByUsername(@Param('username') username: string) {
     return await this.profilesService.findByUsername(username);
   }
 

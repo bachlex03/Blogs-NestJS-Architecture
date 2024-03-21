@@ -40,7 +40,7 @@ export class CommentsService {
 
     const commentOnBlog = this.prismaService.commentsOnBlogs.create({
       data: {
-        blogId: createCommentDto.blogId,
+        blogId: createCommentDto.id,
         commentId: (await userComment).id,
       },
     });
@@ -73,15 +73,18 @@ export class CommentsService {
     });
   }
 
-  async delete(id: number) {
-    const comment = await this.prismaService.comment.delete({ where: { id } });
-
-    if (!comment) {
+  async delete(userId: string, id: number) {
+    try {
+      await this.prismaService.comment.delete({
+        where: { id, authorId: userId },
+      });
+    } catch (err) {
+      console.log(err);
       throw new BadGatewayException("Can't delete this comment");
     }
 
     return {
-      message: 'Deleted comment !',
+      message: 'Comment deleted !',
       statusCode: HttpStatus.OK,
     };
   }

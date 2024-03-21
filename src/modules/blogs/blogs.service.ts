@@ -27,6 +27,38 @@ export class BlogsService {
     return await this.prismaService.blog.findFirst({ where: { id: blogId } });
   }
 
+  async allCommentsOfBlog(id: number) {
+    const blogComments = await this.prismaService.blog.findUnique({
+      where: { id },
+      include: {
+        comments: {
+          select: {
+            comment: {
+              select: {
+                content: true,
+                createAt: true,
+                author: {
+                  select: { username: true, id: true },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const refactorComments = blogComments.comments.map((comment) => {
+      return {
+        ...comment.comment,
+      };
+    });
+
+    return {
+      ...blogComments,
+      comments: refactorComments,
+    };
+  }
+
   async requestCreate(
     userId: string,
     createBlogDto: CreateBlogDto,
@@ -50,8 +82,8 @@ export class BlogsService {
     this.eventEmitter.emit('comment', {
       authorComment: createCommentDto.authorId,
       content: createCommentDto.content,
-      blogId: createCommentDto.blogId,
-      authorBlog: (await this.findById(createCommentDto.blogId)).authorId,
+      blogId: createCommentDto.id,
+      authorBlog: (await this.findById(createCommentDto.id)).authorId,
     });
 
     return {

@@ -13,6 +13,7 @@ import { TokenService } from '../tokens/tokens.service';
 import { MailService } from '../mail/mail.service';
 import { User } from '@prisma/client';
 import { UsersService } from '../users/users.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +22,7 @@ export class AuthService {
     private usersService: UsersService,
     private tokenService: TokenService,
     private mailerService: MailService,
+    private eventEmitter2: EventEmitter2,
   ) {}
 
   async signUp(registerDto: RegisterDto) {
@@ -91,12 +93,14 @@ export class AuthService {
     };
   }
 
-  async logout(user: any) {
-    const { userId } = user;
-
+  async logout(userId: string) {
     const deletedKeyToken = await this.tokenService.deleteByUserId(userId);
 
     if (deletedKeyToken) {
+      this.eventEmitter2.emit('logout', {
+        userId,
+      });
+
       return {
         message: 'Logout successful',
         code: HttpStatus.OK,

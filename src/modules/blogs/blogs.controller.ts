@@ -13,7 +13,7 @@ import {
 import { BlogsService } from './blogs.service';
 import { CreateBlogDto } from './dto/create-blog.dto';
 import { Request } from 'express';
-import { ApiBody, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOkResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/common/enums/role.enum';
 import { StatusDto } from './dto/status.dto';
@@ -30,6 +30,25 @@ export class BlogsController {
    */
   @Public()
   @Get('/viewer')
+  @ApiOkResponse({
+    schema: {
+      example: {
+        title: 'string',
+        content: 'string',
+        createAt: '2024-03-19T19:12:29.894Z',
+        author: {
+          username: 'string',
+        },
+        comments: [
+          {
+            author: 'string',
+            content: 'string',
+            createAt: '2024-03-19T19:15:21.395Z',
+          },
+        ],
+      },
+    },
+  })
   async findApprovedBlogs() {
     return await this.blogsService.findApprovedBlogs();
   }
@@ -41,6 +60,15 @@ export class BlogsController {
   @Roles(Role.ADMIN)
   async findAllByStatus(@Query() query: StatusDto) {
     return await this.blogsService.findAllByStatus(query.status);
+  }
+
+  /**
+   * [EVERYONE] Can see blog and comments of this blog
+   */
+  @Public()
+  @Get(':id/comments')
+  async findAllCommentsOfBlog(@Param('id') id: number) {
+    return await this.blogsService.allCommentsOfBlog(id);
   }
 
   /**
@@ -60,7 +88,7 @@ export class BlogsController {
   /**
    * [ADMIN, USER] Can comment a blog (done)
    */
-  @Post(':blogId/comment')
+  @Post(':id/comment')
   @Roles(Role.ADMIN, Role.USER)
   @ApiBody({
     schema: {
@@ -73,7 +101,7 @@ export class BlogsController {
     },
   })
   async commentOnBlog(
-    @Param('blogId') blogId: number,
+    @Param('id') id: number,
     @Req() req: Request,
     @Body('content') content: string,
   ) {
@@ -82,7 +110,7 @@ export class BlogsController {
     const { userId } = req.user as any;
 
     return await this.blogsService.commentOnBlog({
-      blogId,
+      id,
       authorId: userId,
       content,
     });

@@ -8,11 +8,12 @@ import {
   Req,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { Role } from 'src/common/enums/role.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Request } from 'express';
 import { UpdatePasswordDto } from './dto/update-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('users')
 @ApiTags('Users')
@@ -43,6 +44,13 @@ export class UsersController {
    */
   @Patch('me/password')
   @Roles(Role.USER)
+  @ApiOkResponse({
+    schema: {
+      example: {
+        message: 'Password successfully updated',
+      },
+    },
+  })
   updatePassword(
     @Body() updatePasswordDto: UpdatePasswordDto,
     @Req() req: Request,
@@ -57,6 +65,7 @@ export class UsersController {
    */
   @Patch(':id/password')
   @Roles(Role.ADMIN)
+  @ApiOkResponse({ type: ResetPasswordDto })
   changePassword(@Param('id') id: string) {
     return this.usersService.resetPassword(id);
   }

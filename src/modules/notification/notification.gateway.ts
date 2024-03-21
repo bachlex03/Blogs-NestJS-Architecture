@@ -66,6 +66,11 @@ export class NotificationGateway
     console.log('disconnected userId: ', socket.data.userId);
   }
 
+  @OnEvent('logout')
+  emitLogout(payload: any) {
+    this.server.to(payload.userId).emit('notification', 'User is offline');
+  }
+
   @OnEvent('comment')
   async emitComment(payload: any) {
     console.log({
