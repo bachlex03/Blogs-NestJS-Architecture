@@ -70,7 +70,7 @@ export class AuthService {
     };
   }
 
-  async login(user: any) {
+  async login(user: User) {
     // generate access token and refresh token
     const payload = {
       userId: user.id,

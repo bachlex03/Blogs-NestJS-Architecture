@@ -60,6 +60,7 @@ model Blog {
 
 model Comment {
   id                    Int @id @default(autoincrement())
+  parentId              Int 
   content               String
   createAt              DateTime? @default(now())
   author                User @relation(name: "user_comments", fields: [authorId], references: [id], onDelete: Cascade)

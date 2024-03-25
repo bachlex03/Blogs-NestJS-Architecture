@@ -3,6 +3,7 @@ import {
   HttpStatus,
   Inject,
   Injectable,
+  NotFoundException,
   forwardRef,
 } from '@nestjs/common';
 import { CreateBlogDto } from './dto/create-blog.dto';
@@ -75,6 +76,10 @@ export class BlogsService {
   }
 
   async commentOnBlog(createCommentDto: CreateCommentDto) {
+    if (!createCommentDto.id) {
+      throw new NotFoundException('Blog not found');
+    }
+
     const comment = await this.commentService.create(createCommentDto);
 
     if (!comment) throw new BadRequestException('Can not on this blog');

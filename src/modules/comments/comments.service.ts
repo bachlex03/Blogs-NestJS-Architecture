@@ -35,6 +35,8 @@ export class CommentsService {
       data: {
         content: createCommentDto.content,
         authorId: createCommentDto.authorId,
+        parentId: null,
+        
       },
     });
 
@@ -55,6 +57,20 @@ export class CommentsService {
       content: transaction[0].content,
       blogId: transaction[1].blogId,
     };
+  }
+
+  async reply(parentId: number, authorId: string) {
+    if (!parentId) {
+      throw new BadRequestException('Can not comment');
+    }
+
+    return this.prismaService.comment.create({
+      data: {
+        parentId,
+        content: '123',
+        authorId: authorId,
+      },
+    });
   }
 
   async deleteCommentsNotBelongToBlog() {
